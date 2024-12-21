@@ -136,3 +136,5 @@ cython_debug/
 
 # Shell script
 set_env.sh
+
+.DS_Store
