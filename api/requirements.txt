@@ -1,0 +1,10 @@
+Flask
+Flask-SQLAlchemy
+requests
+gunicorn>=20.1.0
+psycopg2-binary
+Flask-JWT-Extended
+bcrypt
+Flask-Cors
+pytest
+pytest-flask
