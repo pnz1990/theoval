@@ -1,7 +1,23 @@
 import logging
-from models import db, Group, Profile, User, Chat  # Import Chat model
+from models import db, Group, Profile, User, Chat, chat_participants  # Import necessary models
 from werkzeug.exceptions import BadRequest
 from uuid import UUID
+from functools import wraps
+from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity
+from flask import request, jsonify
+from werkzeug.exceptions import Unauthorized
+
+def authenticate(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            verify_jwt_in_request()
+            user_id = get_jwt_identity()
+            request.user_id = user_id
+            return func(*args, **kwargs)
+        except Exception:
+            return jsonify({'message': 'Authorization token is missing or invalid'}), 401
+    return wrapper
 
 def validate_group_data(data):
     logging.debug(f"Validating group data: {data}")
@@ -102,3 +118,46 @@ def update_chat(chat, data):
     chat.participants = profiles
     db.session.commit()
     return chat
+
+def get_user_info(user_id):
+    user = User.query.get(user_id)
+    if not user:
+        raise BadRequest("User not found")
+    
+    # Retrieve profiles associated with the user
+    profiles = Profile.query.filter_by(user_id=user_id).all()
+    
+    # Extract unique groups from the user's profiles
+    groups = []
+    group_ids = []
+    for profile in profiles:
+        group = Group.query.get(profile.group_id)
+        if group:
+            groups.append({
+                'id': str(group.id),
+                'name': group.name,
+                'picture': group.picture,
+                'max_profiles': group.max_profiles
+            })
+            group_ids.append(group.id)
+    
+    # Fetch chats associated with the user's groups
+    chats = Chat.query.filter(Chat.group_id.in_(group_ids)).all()
+    chats_data = [{
+        'id': str(chat.id),
+        'name': chat.name,
+        'created_at': chat.created_at.isoformat(),
+        'updated_at': chat.updated_at.isoformat(),
+        'group_id': str(chat.group_id),
+        'participant_ids': [str(profile.id) for profile in chat.participants]
+    } for chat in chats]
+    
+    user_info = {
+        'id': str(user.id),
+        'email': user.email,
+        'profiles': [{'id': str(p.id), 'name': p.name, 'group_id': str(p.group_id)} for p in profiles],
+        'groups': groups,  # Only groups where the user has profiles
+        'chats': chats_data  # Chats associated with the user's groups
+    }
+    
+    return user_info

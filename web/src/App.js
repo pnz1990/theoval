@@ -8,13 +8,42 @@ import GroupList from './GroupList'; // Import GroupList component
 import GroupForm from './GroupForm'; // Import GroupForm component
 import ProfileForm from './ProfileForm'; // Import ProfileForm component
 import ChatPage from './ChatPage'; // Import ChatPage component
+import MyGroups from './MyGroups';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
 function App() {
   const [message, setMessage] = useState('');
+  const [userData, setUserData] = useState(null); // Added state for user data
   const history = useHistory();
   const isLoggedIn = !!localStorage.getItem('token');
+
+  useEffect(() => {
+    const fetchUserData = async () => { // Added function to fetch user data
+      try {
+        const response = await fetch(`${API_URL}/users/me`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          console.log('App: Fetched userData:', data);
+          setUserData(data);
+        } else {
+          console.error('App: Failed to fetch userData:', response.statusText);
+          history.push('/login');
+        }
+      } catch (error) {
+        console.error('App: Error fetching user data:', error);
+        history.push('/login');
+      }
+    };
+
+    if (isLoggedIn) {
+      fetchUserData(); // Fetch user data if logged in
+    }
+  }, [history, isLoggedIn]);
 
   useEffect(() => {
     fetch(`${API_URL}/protected`, {
@@ -43,25 +72,28 @@ function App() {
   return (
     <Switch>
       <Route path="/admin">
-        <Admin />
+        <Admin userData={userData} /> {/* Passed userData as prop */}
       </Route>
       <Route path="/groups/new">
-        <GroupForm />
+        <GroupForm userData={userData} /> {/* Passed userData as prop */}
       </Route>
       <Route path="/groups/:id/edit">
-        <GroupForm />
+        <GroupForm userData={userData} /> {/* Passed userData as prop */}
       </Route>
       <Route path="/groups/:groupId/chats">
-        <ChatPage />
+        <ChatPage userData={userData} /> {/* Passed userData as prop */}
       </Route>
       <Route path="/groups">
-        <GroupList />
+        <GroupList userData={userData} /> {/* Passed userData as prop */}
       </Route>
       <Route path="/profiles/new">
-        <ProfileForm />
+        <ProfileForm userData={userData} /> {/* Passed userData as prop */}
+      </Route>
+      <Route path="/mygroups">
+        <MyGroups userData={userData} /> {/* Passed userData as prop */}
       </Route>
       <Route path="/profiles/:id/edit">
-        <ProfileForm />
+        <ProfileForm userData={userData} /> {/* Passed userData as prop */}
       </Route>
       <Route path="/">
         <Container maxWidth="sm">
@@ -82,8 +114,8 @@ function App() {
               <Button variant="contained" color="primary" sx={{ mr: 2 }} onClick={() => history.push('/profiles/new')}>
                 Get Started
               </Button>
-              <Button variant="contained" color="primary" sx={{ mr: 2 }} onClick={() => history.push('/profiles')}>
-                View Profiles
+              <Button variant="contained" color="primary" sx={{ mr: 2 }} onClick={() => history.push('/mygroups')}>
+                My Groups
               </Button>
               {!isLoggedIn && (
                 <Button variant="outlined" color="primary" onClick={() => history.push('/login')}>

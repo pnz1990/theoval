@@ -7,7 +7,7 @@ from werkzeug.exceptions import BadRequest
 from services import (
     validate_group_data, validate_profile_data, is_strong_password,
     create_group, update_group, create_profile,
-    validate_chat_data, create_chat, update_chat
+    validate_chat_data, create_chat, update_chat, get_user_info, authenticate
 )
 import logging
 
@@ -238,6 +238,18 @@ def create_app(test_config=None):
             'chat_id': message.chat_id,
             'profile_id': message.profile_id
         } for message in messages])
+    
+    @app.route('/users/me', methods=['GET'])
+    @authenticate
+    def get_me():
+        user_id = request.user_id
+        try:
+            user_info = get_user_info(user_id)
+            return jsonify(user_info), 200
+        except BadRequest as e:
+            return jsonify({'message': str(e)}), 400
+        except Exception as e:
+            return jsonify({'message': str(e)}), 500
     
     ### Route Definitions End ###
     

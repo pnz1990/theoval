@@ -1,345 +1,439 @@
 # The Oval
 
-A personal project inspired by the TV reality show "The Circle." In "The Oval," users create anonymous profiles, engage in real-time chats, build alliances, and cast votes to determine the most influential player. The platform emphasizes privacy, strategic interactions, and dynamic gameplay, offering features such as private messaging and a robust voting system to enhance user engagement.
+The Oval is a comprehensive platform designed to facilitate group management, profile creation, and real-time chat functionalities. It serves as a centralized hub for users to create profiles, join groups, and engage in meaningful conversations within their communities.
 
 ## Features
 
-- **User Registration and Authentication**: Secure user registration and login using JWT authentication.
-- **Group Management**: Create, update, delete, and retrieve groups where users can interact.
-- **Profile Management**: Within each group, users can create, update, delete, and retrieve profiles to represent themselves anonymously.
-- **Real-Time Chat**: Engage in real-time conversations within specific chats or private messages.
-- **Voting System**: Cast votes to eliminate players, influencing the outcome of the game.
-- **Alliance Building**: Form alliances with other users to strategize and collaborate.
-- **Responsive Design**: Accessible and user-friendly interface across various devices.
+- **User Authentication:** Secure registration and login with JWT-based authentication.
+- **Group Management:** Create, update, and delete groups with customizable settings.
+- **Profile Creation:** Users can create and manage multiple profiles within different groups.
+- **Real-Time Chat:** Engage in real-time conversations within group-specific chats.
+- **Admin Interface:** Dedicated admin pages for managing groups and profiles independently of user data.
 
-## API Endpoints
-
-Detailed documentation of all API endpoints, including expected parameters and responses.
+## API Documentation
 
 ### Authentication
 
-- **Register a New User**
-  
-  `POST /register`
-  
-  - **Parameters (JSON Body)**:
-    - `email` (string, required): User's email address.
-    - `password` (string, required): User's password (must be strong).
-  
-  - **Responses**:
-    - `201 Created`: User registered successfully.
-    - `400 Bad Request`: User already exists or weak password.
+#### Register a New User
 
-- **User Login**
-  
-  `POST /login`
-  
-  - **Parameters (JSON Body)**:
-    - `email` (string, required): User's email address.
-    - `password` (string, required): User's password.
-  
-  - **Responses**:
-    - `200 OK`: Returns JWT token.
-    - `401 Unauthorized`: Invalid credentials.
+- **Endpoint:** `/register`
+- **Method:** `POST`
+- **Description:** Registers a new user with an email and password.
+- **Request Body:**
+  ```json
+  {
+    "email": "user@example.com",
+    "password": "SecurePass123"
+  }
+  ```
+- **Responses:**
+  - `201 Created`: User registered successfully.
+    ```json
+    {
+      "message": "User registered successfully"
+    }
+    ```
+  - `400 Bad Request`: User already exists or password does not meet criteria.
 
-### Groups
+#### Login
 
-- **Create a New Group**
-  
-  `POST /groups` *(Requires JWT)*
-  
-  - **Parameters (JSON Body)**:
-    - `name` (string, required): Name of the group.
-    - `picture` (string, optional): URL to the group's picture.
-    - `max_profiles` (integer, required): Maximum number of profiles allowed in the group.
-  
-  - **Responses**:
-    - `201 Created`: Returns the ID of the created group.
-    - `400 Bad Request`: Invalid group data.
+- **Endpoint:** `/login`
+- **Method:** `POST`
+- **Description:** Authenticates a user and returns a JWT token.
+- **Request Body:**
+  ```json
+  {
+    "email": "user@example.com",
+    "password": "SecurePass123"
+  }
+  ```
+- **Responses:**
+  - `200 OK`: Returns JWT token.
+    ```json
+    {
+      "token": "jwt.token.here"
+    }
+    ```
+  - `401 Unauthorized`: Invalid credentials.
 
-- **Retrieve All Groups**
-  
-  `GET /groups` *(Requires JWT)*
-  
-  - **Responses**:
-    - `200 OK`: Returns a list of all groups.
+### User Information
 
-- **Retrieve a Specific Group**
-  
-  `GET /groups/<group_id>` *(Requires JWT)*
-  
-  - **Parameters**:
-    - `group_id` (string, required): ID of the group.
-  
-  - **Responses**:
-    - `200 OK`: Returns group details.
-    - `404 Not Found`: Group does not exist.
+#### Get Current User Info
 
-- **Update a Group**
-  
-  `PUT /groups/<group_id>` *(Requires JWT)*
-  
-  - **Parameters**:
-    - `group_id` (string, required): ID of the group.
-  
-  - **Parameters (JSON Body)**:
-    - `name` (string, optional): New name for the group.
-    - `picture` (string, optional): New picture URL.
-    - `max_profiles` (integer, optional): New maximum number of profiles.
-  
-  - **Responses**:
-    - `200 OK`: Returns the ID of the updated group.
-    - `400 Bad Request`: Invalid update data.
-    - `404 Not Found`: Group does not exist.
+- **Endpoint:** `/users/me`
+- **Method:** `GET`
+- **Description:** Retrieves information about the authenticated user, including profiles, groups, and chats.
+- **Headers:**
+  - `Authorization: Bearer <JWT_TOKEN>`
+- **Responses:**
+  - `200 OK`: Returns user information.
+  - `400 Bad Request`: User not found.
+  - `500 Internal Server Error`: Server error.
 
-- **Delete a Group**
-  
-  `DELETE /groups/<group_id>` *(Requires JWT)*
-  
-  - **Parameters**:
-    - `group_id` (string, required): ID of the group.
-  
-  - **Responses**:
-    - `204 No Content`: Group deleted successfully.
-    - `404 Not Found`: Group does not exist.
+### Group Management
 
-### Profiles
+#### Create a New Group
 
-- **Create a New Profile**
-  
-  `POST /profiles` *(Requires JWT)*
-  
-  - **Parameters (JSON Body)**:
-    - `name` (string, required): Name of the profile.
-    - `picture` (string, optional): URL to the profile's picture.
-    - `bio` (string, optional): Biography of the profile.
-    - `group_id` (string, required): ID of the group the profile belongs to.
-  
-  - **Responses**:
-    - `201 Created`: Returns the ID of the created profile.
-    - `400 Bad Request`: Invalid profile data or duplicate profile name.
+- **Endpoint:** `/groups`
+- **Method:** `POST`
+- **Description:** Creates a new group.
+- **Headers:**
+  - `Authorization: Bearer <JWT_TOKEN>`
+- **Request Body:**
+  ```json
+  {
+    "name": "Group Name",
+    "max_profiles": 10,
+    "picture": "https://example.com/image.png"
+  }
+  ```
+- **Responses:**
+  - `201 Created`: Group created successfully.
+    ```json
+    {
+      "id": "group-uuid"
+    }
+    ```
+  - `400 Bad Request`: Invalid group data.
 
-- **Retrieve All Profiles**
-  
-  `GET /profiles` *(Requires JWT)*
-  
-  - **Responses**:
-    - `200 OK`: Returns a list of all profiles.
+#### Get All Groups
 
-- **Retrieve a Specific Profile**
-  
-  `GET /profiles/<profile_id>` *(Requires JWT)*
-  
-  - **Parameters**:
-    - `profile_id` (string, required): ID of the profile.
-  
-  - **Responses**:
-    - `200 OK`: Returns profile details.
-    - `404 Not Found`: Profile does not exist.
+- **Endpoint:** `/groups`
+- **Method:** `GET`
+- **Description:** Retrieves a list of all groups.
+- **Headers:**
+  - `Authorization: Bearer <JWT_TOKEN>`
+- **Responses:**
+  - `200 OK`: Returns a list of groups.
 
-- **Update a Profile**
-  
-  `PUT /profiles/<profile_id>` *(Requires JWT)*
-  
-  - **Parameters**:
-    - `profile_id` (string, required): ID of the profile.
-  
-  - **Parameters (JSON Body)**:
-    - `name` (string, optional): New name for the profile.
-    - `picture` (string, optional): New picture URL.
-    - `bio` (string, optional): New biography.
-    - `group_id` (string, optional): New group ID.
-  
-  - **Responses**:
-    - `200 OK`: Returns the ID of the updated profile.
-    - `400 Bad Request`: Invalid update data.
-    - `404 Not Found`: Profile does not exist.
+#### Get a Specific Group
 
-- **Delete a Profile**
-  
-  `DELETE /profiles/<profile_id>` *(Requires JWT)*
-  
-  - **Parameters**:
-    - `profile_id` (string, required): ID of the profile.
-  
-  - **Responses**:
-    - `204 No Content`: Profile deleted successfully.
-    - `404 Not Found`: Profile does not exist.
+- **Endpoint:** `/groups/<group_id>`
+- **Method:** `GET`
+- **Description:** Retrieves details of a specific group.
+- **Headers:**
+  - `Authorization: Bearer <JWT_TOKEN>`
+- **Responses:**
+  - `200 OK`: Returns group details.
+  - `404 Not Found`: Group does not exist.
 
-### Chats
+#### Update a Group
 
-- **Create a New Chat**
-  
-  `POST /groups/<group_id>/chats` *(Requires JWT)*
-  
-  - **Parameters**:
-    - `group_id` (string, required): ID of the group.
-  
-  - **Parameters (JSON Body)**:
-    - `name` (string, required): Name of the chat.
-    - `participant_ids` (array of strings, optional): IDs of profiles to participate in the chat.
-  
-  - **Responses**:
-    - `201 Created`: Returns the ID of the created chat.
-    - `400 Bad Request`: Invalid chat data.
-    - `404 Not Found`: Group does not exist.
+- **Endpoint:** `/groups/<group_id>`
+- **Method:** `PUT`
+- **Description:** Updates information of a specific group.
+- **Headers:**
+  - `Authorization: Bearer <JWT_TOKEN>`
+- **Request Body:** *(Same as Create Group)*
+- **Responses:**
+  - `200 OK`: Group updated successfully.
+  - `400 Bad Request`: Invalid update data.
+  - `404 Not Found`: Group does not exist.
 
-- **Retrieve All Chats in a Group**
-  
-  `GET /groups/<group_id>/chats` *(Requires JWT)*
-  
-  - **Parameters**:
-    - `group_id` (string, required): ID of the group.
-  
-  - **Query Parameters (Optional)**:
-    - `profile_id` (string): Filter chats that a specific profile is part of.
-  
-  - **Responses**:
-    - `200 OK`: Returns a list of chats.
-    - `404 Not Found`: Group does not exist.
+#### Delete a Group
 
-- **Retrieve a Specific Chat**
-  
-  `GET /chats/<chat_id>` *(Requires JWT)*
-  
-  - **Parameters**:
-    - `chat_id` (string, required): ID of the chat.
-  
-  - **Responses**:
-    - `200 OK`: Returns chat details.
-    - `404 Not Found`: Chat does not exist.
+- **Endpoint:** `/groups/<group_id>`
+- **Method:** `DELETE`
+- **Description:** Deletes a specific group.
+- **Headers:**
+  - `Authorization: Bearer <JWT_TOKEN>`
+- **Responses:**
+  - `204 No Content`: Group deleted successfully.
+  - `404 Not Found`: Group does not exist.
 
-- **Update a Chat**
-  
-  `PUT /chats/<chat_id>` *(Requires JWT)*
-  
-  - **Parameters**:
-    - `chat_id` (string, required): ID of the chat.
-  
-  - **Parameters (JSON Body)**:
-    - `name` (string, optional): New name for the chat.
-    - `participant_ids` (array of strings, optional): Updated list of participant IDs.
-  
-  - **Responses**:
-    - `200 OK`: Returns the ID of the updated chat.
-    - `400 Bad Request`: Invalid update data.
-    - `404 Not Found`: Chat does not exist.
+### Profile Management
 
-### Messages
+#### Check Existing Profile in Group
 
-- **Create a New Message**
-  
-  `POST /messages` *(Requires JWT)*
-  
-  - **Parameters (JSON Body)**:
-    - `content` (string, required): Content of the message.
-    - `chat_id` (string, required): ID of the chat.
-    - `profile_id` (string, required): ID of the profile sending the message.
-  
-  - **Responses**:
-    - `201 Created`: Returns the ID of the created message.
-    - `400 Bad Request`: Invalid message data.
-    - `404 Not Found`: Chat or profile does not exist.
+- **Endpoint:** `/profiles/check`
+- **Method:** `POST`
+- **Description:** Checks if the user already has a profile in a specific group.
+- **Headers:**
+  - `Authorization: Bearer <JWT_TOKEN>`
+- **Request Body:**
+  ```json
+  {
+    "group_id": "group-uuid"
+  }
+  ```
+- **Responses:**
+  - `200 OK`: No existing profile.
+    ```json
+    {
+      "message": "No existing profile in this group"
+    }
+    ```
+  - `400 Bad Request`: User already has a profile in the group.
 
-- **Retrieve All Messages in a Chat**
-  
-  `GET /chats/<chat_id>/messages` *(Requires JWT)*
-  
-  - **Parameters**:
-    - `chat_id` (string, required): ID of the chat.
-  
-  - **Responses**:
-    - `200 OK`: Returns a list of messages.
-    - `404 Not Found`: Chat does not exist.
+#### Create a New Profile
 
-## Setup
+- **Endpoint:** `/profiles`
+- **Method:** `POST`
+- **Description:** Creates a new profile within a group.
+- **Headers:**
+  - `Authorization: Bearer <JWT_TOKEN>`
+- **Request Body:**
+  ```json
+  {
+    "name": "Profile Name",
+    "picture": "https://example.com/picture.png",
+    "bio": "Short bio about the profile.",
+    "group_id": "group-uuid"
+  }
+  ```
+- **Responses:**
+  - `201 Created`: Profile created successfully.
+    ```json
+    {
+      "id": "profile-uuid",
+      "name": "Profile Name",
+      "picture": "https://example.com/picture.png",
+      "bio": "Short bio about the profile.",
+      "group_id": "group-uuid"
+    }
+    ```
+  - `400 Bad Request`: Invalid profile data or user already has a profile in the group.
+
+#### Get All Profiles
+
+- **Endpoint:** `/profiles`
+- **Method:** `GET`
+- **Description:** Retrieves a list of all profiles.
+- **Headers:**
+  - `Authorization: Bearer <JWT_TOKEN>`
+- **Responses:**
+  - `200 OK`: Returns a list of profiles.
+
+#### Get a Specific Profile
+
+- **Endpoint:** `/profiles/<profile_id>`
+- **Method:** `GET`
+- **Description:** Retrieves details of a specific profile.
+- **Headers:**
+  - `Authorization: Bearer <JWT_TOKEN>`
+- **Responses:**
+  - `200 OK`: Returns profile details.
+  - `404 Not Found`: Profile does not exist.
+
+### Chat Management
+
+#### Create a New Chat
+
+- **Endpoint:** `/groups/<group_id>/chats`
+- **Method:** `POST`
+- **Description:** Creates a new chat within a group.
+- **Headers:**
+  - `Authorization: Bearer <JWT_TOKEN>`
+- **Request Body:**
+  ```json
+  {
+    "name": "Chat Name",
+    "participant_ids": ["profile-id-1", "profile-id-2"]
+  }
+  ```
+- **Responses:**
+  - `201 Created`: Chat created successfully.
+    ```json
+    {
+      "id": "chat-uuid"
+    }
+    ```
+  - `400 Bad Request`: Invalid chat data.
+
+#### Get All Chats in a Group
+
+- **Endpoint:** `/groups/<group_id>/chats`
+- **Method:** `GET`
+- **Description:** Retrieves all chats within a specific group.
+- **Headers:**
+  - `Authorization: Bearer <JWT_TOKEN>`
+- **Query Parameters:**
+  - `profile_id` *(optional)*: Filter chats by profile participation.
+- **Responses:**
+  - `200 OK`: Returns a list of chats.
+
+#### Get a Specific Chat
+
+- **Endpoint:** `/chats/<chat_id>`
+- **Method:** `GET`
+- **Description:** Retrieves details of a specific chat.
+- **Headers:**
+  - `Authorization: Bearer <JWT_TOKEN>`
+- **Responses:**
+  - `200 OK`: Returns chat details.
+  - `404 Not Found`: Chat does not exist.
+
+#### Update a Chat
+
+- **Endpoint:** `/chats/<chat_id>`
+- **Method:** `PUT`
+- **Description:** Updates the name or participants of a specific chat.
+- **Headers:**
+  - `Authorization: Bearer <JWT_TOKEN>`
+- **Request Body:**
+  ```json
+  {
+    "name": "Updated Chat Name",
+    "participant_ids": ["profile-id-1", "profile-id-3"]
+  }
+  ```
+- **Responses:**
+  - `200 OK`: Chat updated successfully.
+  - `400 Bad Request`: Invalid update data.
+  - `404 Not Found`: Chat does not exist.
+
+### Message Management
+
+#### Create a New Message
+
+- **Endpoint:** `/messages`
+- **Method:** `POST`
+- **Description:** Sends a new message in a chat.
+- **Headers:**
+  - `Authorization: Bearer <JWT_TOKEN>`
+- **Request Body:**
+  ```json
+  {
+    "content": "Hello, world!",
+    "chat_id": "chat-uuid",
+    "profile_id": "profile-uuid"
+  }
+  ```
+- **Responses:**
+  - `201 Created`: Message sent successfully.
+    ```json
+    {
+      "id": "message-uuid"
+    }
+    ```
+  - `400 Bad Request`: Invalid message data.
+
+#### Get All Messages in a Chat
+
+- **Endpoint:** `/chats/<chat_id>/messages`
+- **Method:** `GET`
+- **Description:** Retrieves all messages within a specific chat.
+- **Headers:**
+  - `Authorization: Bearer <JWT_TOKEN>`
+- **Responses:**
+  - `200 OK`: Returns a list of messages.
+
+## Installation
 
 ### Prerequisites
 
-- **Docker**: Ensure Docker is installed on your system. [Download Docker](https://www.docker.com/get-started)
-- **Docker Compose**: Comes bundled with Docker Desktop. Verify installation with `docker-compose --version`.
+- **Backend:**
+  - Python 3.8+
+  - PostgreSQL
+  - Virtual Environment Manager (e.g., `venv` or `conda`)
 
-### Running the Application
+- **Frontend:**
+  - Node.js 14+
+  - npm or yarn
 
-1. **Clone the Repository**:
+### Backend Setup
 
-    ```sh
-    git clone https://github.com/yourusername/theoval.git
-    cd theoval
-    ```
+1. **Clone the Repository:**
+   ```bash
+   git clone https://github.com/yourusername/theoval.git
+   cd theoval/api
+   ```
 
-2. **Export Environment Variables**:
+2. **Create and Activate Virtual Environment:**
+   ```bash
+   python3 -m venv venv
+   source venv/bin/activate
+   ```
 
-    Create a `.env` file or use the provided `set_env.sh` script to set necessary environment variables.
+3. **Install Dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-    ```sh
-    source set_env.sh
-    ```
+4. **Configure Environment Variables:**
+   - Create a `.env` file in the `api` directory with the following:
+     ```
+     POSTGRES_USER=your_postgres_user
+     POSTGRES_PASSWORD=your_postgres_password
+     POSTGRES_DB=theoval_db
+     JWT_SECRET_KEY=your_jwt_secret_key
+     ```
 
-3. **Build and Start Services Using Docker Compose**:
+5. **Initialize the Database:**
+   ```bash
+   python app.py
+   ```
 
-    ```sh
-    docker-compose up --build
-    ```
+6. **Run the Backend Server:**
+   ```bash
+   python app.py
+   ```
 
-4. **Access the Application**:
+### Frontend Setup
 
-    The application will be available at `http://localhost:5000`.
+1. **Navigate to Frontend Directory:**
+   ```bash
+   cd ../web
+   ```
 
-### Building the Application
+2. **Install Dependencies:**
+   ```bash
+   npm install
+   # or
+   yarn install
+   ```
 
-To build the application manually without running the services:
+3. **Configure Environment Variables:**
+   - Create a `.env` file in the `web` directory with the following:
+     ```
+     REACT_APP_API_URL=http://localhost:5001
+     ```
 
-1. **Navigate to the Project Directory**:
+4. **Run the Frontend Development Server:**
+   ```bash
+   npm start
+   # or
+   yarn start
+   ```
 
-    ```sh
-    cd theoval
-    ```
+## Usage
 
-2. **Build Docker Images**:
+1. **Register a New User:**
+   - Navigate to `/register` and create a new account.
 
-    ```sh
-    docker-compose build
-    ```
+2. **Login:**
+   - Navigate to `/login` and authenticate using your credentials.
 
-3. **Run Services**:
+3. **Manage Groups:**
+   - Access the Admin Area to create, update, or delete groups.
 
-    ```sh
-    docker-compose up
-    ```
+4. **Create Profiles:**
+   - Create profiles within your groups to participate in chats.
 
-### Testing the Application
+5. **Join and Chat:**
+   - Join groups and engage in real-time conversations within chat rooms.
 
-1. **Stop Running Services** (if any):
+## Contributing
 
-    ```sh
-    docker-compose down
-    ```
+Contributions are welcome! Please follow these steps:
 
-2. **Run Tests Using Docker Compose**:
+1. **Fork the Repository**
+2. **Create a New Branch**
+   ```bash
+   git checkout -b feature/YourFeature
+   ```
+3. **Commit Your Changes**
+   ```bash
+   git commit -m "Add Your Feature"
+   ```
+4. **Push to the Branch**
+   ```bash
+   git push origin feature/YourFeature
+   ```
+5. **Open a Pull Request**
 
-    ```sh
-    docker-compose run test
-    ```
-
-   This command executes the test suite defined in the project to ensure all functionalities work as expected.
-
-## Running Tests
-
-1. **Ensure Services Are Stopped**:
-
-    ```sh
-    docker-compose down
-    ```
-
-2. **Execute Test Suite**:
-
-    ```sh
-    docker-compose run test
-    ```
-
-   This will run all tests using the testing environment configured with in-memory SQLite.
+Please ensure your code adheres to the project's coding standards and all tests pass.
 
 ## License
 
-This project is licensed under the MIT License.
+This project is licensed under the [MIT License](LICENSE).

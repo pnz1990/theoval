@@ -5,28 +5,51 @@ import DeleteIcon from '@mui/icons-material/Delete';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
-function GroupList() {
+function GroupList() { // Removed userData as a prop
   const [groups, setGroups] = useState([]);
   const history = useHistory();
 
-  useEffect(() => {
+  useEffect(() => { // Removed userData from dependency array
+    console.log('GroupList: useEffect triggered');
     fetch(`${API_URL}/groups`, {
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('token')}`
       }
     })
-    .then(response => response.json())
-    .then(data => setGroups(data));
-  }, []);
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`Error fetching groups: ${response.statusText}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log('GroupList: Fetched groups:', data);
+      setGroups(data);
+    })
+    .catch(error => {
+      console.error('GroupList: Failed to fetch groups:', error);
+    });
+  }, []); // Dependency array is now empty
 
   const handleDelete = async (id) => {
-    await fetch(`${API_URL}/groups/${id}`, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
+    console.log(`GroupList: Deleting group with id ${id}`);
+    try {
+      const response = await fetch(`${API_URL}/groups/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      if (response.ok) {
+        setGroups(groups.filter(group => group.id !== id));
+        console.log(`GroupList: Deleted group with id ${id}`);
+      } else {
+        const errorData = await response.json();
+        console.error(`GroupList: Failed to delete group: ${errorData.message}`);
       }
-    });
-    setGroups(groups.filter(group => group.id !== id));
+    } catch (error) {
+      console.error('GroupList: Error deleting group:', error);
+    }
   };
 
   return (

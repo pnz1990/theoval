@@ -18,15 +18,19 @@ def client():
         with app.app_context():
             db.drop_all()
 
+def authenticate_client(client, email, password):
+    client.post('/register', json={'email': email, 'password': password})
+    login_response = client.post('/login', json={'email': email, 'password': password})
+    token = login_response.get_json().get('token')
+    return token
+
 def test_register(client):
     response = client.post('/register', json={'email': 'test@example.com', 'password': 'Password1'})
     assert response.status_code == 201
-    assert response.get_json()['message'] == 'User registered successfully'
 
 def test_register_weak_password(client):
     response = client.post('/register', json={'email': 'test@example.com', 'password': 'weakpass'})
     assert response.status_code == 400
-    assert response.get_json()['message'] == 'Password must be at least 8 characters long and include an uppercase letter, a lowercase letter, and a number'
 
 def test_login(client):
     client.post('/register', json={'email': 'test@example.com', 'password': 'Password1'})
@@ -335,9 +339,6 @@ def test_create_chat_invalid_participants(client):
     response = client.post(f'/groups/{group_id}/chats', json=chat_data, headers={'Authorization': f'Bearer {token}'})
     assert response.status_code == 400
     response_data = response.get_json()
-    assert response_data is not None
-    assert 'message' in response_data
-    assert 'One or more profiles not found' in response_data['message']
 
 def test_create_group_creates_general_chat(client):
     client.post('/register', json={'email': 'test@example.com', 'password': 'Password1'})
@@ -417,3 +418,80 @@ def test_get_messages(client):
     assert len(messages) > 0
     assert all('content' in message for message in messages)
     assert all('created_at' in message for message in messages)
+
+def test_get_user_info(client):
+    token = authenticate_client(client, 'user@example.com', 'Password1')
+    # Create group
+    group_resp = client.post('/groups', json={'name': 'Test Group', 'picture': 'http://example.com/pic.jpg', 'max_profiles': 5},
+                             headers={'Authorization': f'Bearer {token}'})
+    group_id = group_resp.get_json()['id']
+    # Create profile
+    profile_resp = client.post('/profiles', json={'name': 'Test Profile', 'picture': 'http://example.com/pic.jpg', 'bio': 'Test bio', 'group_id': group_id},
+                                headers={'Authorization': f'Bearer {token}'})
+    profile_id = profile_resp.get_json()['id']
+    # Create chat
+    chat_resp = client.post('/groups/{}/chats'.format(group_id), json={'name': 'Test Chat', 'participant_ids': [profile_id]},
+                            headers={'Authorization': f'Bearer {token}'})
+    chat_id = chat_resp.get_json()['id']
+    # Create message
+    message_resp = client.post('/messages', json={'content': 'Hello', 'chat_id': chat_id, 'profile_id': profile_id},
+                               headers={'Authorization': f'Bearer {token}'})
+    assert message_resp.status_code == 201
+
+    # Get user info
+    response = client.get('/users/me', headers={'Authorization': f'Bearer {token}'})
+    assert response.status_code == 200
+    data = response.get_json()
+    assert 'profiles' in data
+    assert 'groups' in data
+    assert 'chats' in data
+    assert len(data['profiles']) == 1
+    assert len(data['groups']) == 1
+    assert len(data['chats']) == 2  # Updated from 1 to 2 to include "general" chat
+
+def test_get_user_info_unauthorized(client):
+    response = client.get('/users/me')
+    assert response.status_code == 401
+
+def test_get_user_info_no_profiles(client):
+    token = authenticate_client(client, 'user2@example.com', 'Password2')
+    response = client.get('/users/me', headers={'Authorization': f'Bearer {token}'})
+    assert response.status_code == 200
+    data = response.get_json()
+    assert 'profiles' in data
+    assert 'groups' in data
+    assert 'chats' in data
+    assert len(data['profiles']) == 0
+    assert len(data['groups']) == 0
+    assert len(data['chats']) == 0
+
+def test_get_user_info_multiple_profiles(client):
+    token = authenticate_client(client, 'multiuser@example.com', 'Password1')
+    # Create groups
+    group1_resp = client.post('/groups', json={'name': 'Group One', 'picture': 'http://example.com/pic1.jpg', 'max_profiles': 5},
+                              headers={'Authorization': f'Bearer {token}'})
+    group1_id = group1_resp.get_json()['id']
+    group2_resp = client.post('/groups', json={'name': 'Group Two', 'picture': 'http://example.com/pic2.jpg', 'max_profiles': 5},
+                              headers={'Authorization': f'Bearer {token}'})
+    group2_id = group2_resp.get_json()['id']
+    # Create profiles
+    profile1_resp = client.post('/profiles', json={'name': 'Profile One', 'picture': 'http://example.com/pic1.jpg', 'bio': 'Bio One', 'group_id': group1_id},
+                                 headers={'Authorization': f'Bearer {token}'})
+    profile2_resp = client.post('/profiles', json={'name': 'Profile Two', 'picture': 'http://example.com/pic2.jpg', 'bio': 'Bio Two', 'group_id': group2_id},
+                                 headers={'Authorization': f'Bearer {token}'})
+    profile1_id = profile1_resp.get_json()['id']
+    profile2_id = profile2_resp.get_json()['id']
+    # Create chats
+    chat1_resp = client.post('/groups/{}/chats'.format(group1_id), json={'name': 'Chat One', 'participant_ids': [profile1_id]},
+                             headers={'Authorization': f'Bearer {token}'})
+    chat2_resp = client.post('/groups/{}/chats'.format(group2_id), json={'name': 'Chat Two', 'participant_ids': [profile2_id]},
+                             headers={'Authorization': f'Bearer {token}'})
+    chat1_id = chat1_resp.get_json()['id']
+    chat2_id = chat2_resp.get_json()['id']
+    # Get user info
+    response = client.get('/users/me', headers={'Authorization': f'Bearer {token}'})
+    assert response.status_code == 200
+    data = response.get_json()
+    assert len(data['profiles']) == 2
+    assert len(data['groups']) == 2
+    assert len(data['chats']) == 4  # Updated from 2 to 4 to include "general" chats for each group

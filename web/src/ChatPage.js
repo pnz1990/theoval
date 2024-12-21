@@ -4,14 +4,14 @@ import { useParams } from 'react-router-dom';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
-function ChatPage() {
+function ChatPage({ userData }) { // Added userData as a prop
   const [chats, setChats] = useState([]);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [selectedChat, setSelectedChat] = useState(null);
   const [profiles, setProfiles] = useState([]);
   const { groupId } = useParams();
-  const profileId = new URLSearchParams(window.location.search).get('profile_id');
+  const profileId = userData ? userData.profiles[0].id : null; // Use userData to get profile_id
   const [open, setOpen] = useState(false);
   const [newChatName, setNewChatName] = useState('');
   const [profilesModalOpen, setProfilesModalOpen] = useState(false);
@@ -74,17 +74,19 @@ function ChatPage() {
   };
 
   useEffect(() => {
-    fetchChats();
+    if (userData) { // Use userData to fetch chats
+      fetchChats();
 
-    // Fetch profiles
-    fetch(`${API_URL}/profiles`, {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      }
-    })
-    .then(response => response.json())
-    .then(data => setProfiles(data));
-  }, [groupId, profileId]);
+      // Fetch profiles
+      fetch(`${API_URL}/profiles`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      })
+      .then(response => response.json())
+      .then(data => setProfiles(data));
+    }
+  }, [groupId, profileId, userData]);
 
   useEffect(() => {
     if (selectedChat) {

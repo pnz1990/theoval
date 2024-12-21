@@ -4,7 +4,7 @@ import { useHistory, useParams } from 'react-router-dom';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
-function GroupForm() {
+function GroupForm() { // Removed userData as a prop
   const [name, setName] = useState('');
   const [picture, setPicture] = useState('');
   const [maxProfiles, setMaxProfiles] = useState('');

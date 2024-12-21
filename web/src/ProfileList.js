@@ -4,28 +4,21 @@ import { useHistory } from 'react-router-dom';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
-function ProfileList() {
-  const history = useHistory();
-  const userId = localStorage.getItem('userId'); // or wherever user info is stored
+function ProfileList({ userData }) { // Added userData as a prop
   const [profiles, setProfiles] = useState([]);
+  const history = useHistory();
 
   useEffect(() => {
-    const fetchProfiles = async () => {
-      try {
-        const response = await fetch(`${API_URL}/profiles?user_id=${userId}`, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
-        });
-        const data = await response.json();
-        setProfiles(data);
-      } catch (error) {
-        console.error('Error fetching profiles:', error);
-      }
-    };
-
-    fetchProfiles();
-  }, [userId]);
+    if (userData) { // Use userData to fetch profiles
+      fetch(`${API_URL}/profiles`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      })
+      .then(response => response.json())
+      .then(data => setProfiles(data));
+    }
+  }, [userData]);
 
   const handleProfileClick = (profile) => {
     history.push(`/groups/${profile.group_id}/chats?profile_id=${profile.id}`);
