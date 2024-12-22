@@ -2,11 +2,12 @@ import React from 'react';
 import { Button, Box } from '@mui/material';
 import { useHistory } from 'react-router-dom';
 
-function LogoutButton() {
+function LogoutButton({ setIsLoggedIn }) { // Receive setIsLoggedIn as a prop
   const history = useHistory();
 
   const handleLogout = () => {
     localStorage.removeItem('token');
+    setIsLoggedIn(false); // Update login state
     history.push('/login');
   };
 

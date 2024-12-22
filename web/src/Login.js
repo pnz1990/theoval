@@ -6,7 +6,7 @@ import LogoutButton from './LogoutButton'; // Import the LogoutButton component
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
-function Login() {
+function Login({ setIsLoggedIn }) { // Received setIsLoggedIn as a prop
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -25,6 +25,7 @@ function Login() {
     const data = await response.json();
     if (response.ok) {
       localStorage.setItem('token', data.token);
+      setIsLoggedIn(true); // Update login state
       history.push('/');
     } else {
       setError(data.message);
