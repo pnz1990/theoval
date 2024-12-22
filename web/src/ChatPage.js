@@ -4,14 +4,14 @@ import { useParams } from 'react-router-dom';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
-function ChatPage({ userData }) { // Added userData as a prop
+function ChatPage({ userData }) {
   const [chats, setChats] = useState([]);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [selectedChat, setSelectedChat] = useState(null);
   const [profiles, setProfiles] = useState([]);
   const { groupId } = useParams();
-  const profileId = userData ? userData.profiles[0].id : null; // Use userData to get profile_id
+  const profileId = userData ? userData.profiles[0].id : null;
   const [open, setOpen] = useState(false);
   const [newChatName, setNewChatName] = useState('');
   const [profilesModalOpen, setProfilesModalOpen] = useState(false);
@@ -63,7 +63,6 @@ function ChatPage({ userData }) { // Added userData as a prop
         setSelectedChat(chat);
         setNewChatName('');
         handleClose();
-        // Refresh the chat list
         await fetchChats();
       } else {
         console.error('Failed to create chat:', response.statusText);
@@ -74,10 +73,9 @@ function ChatPage({ userData }) { // Added userData as a prop
   };
 
   useEffect(() => {
-    if (userData) { // Use userData to fetch chats
+    if (userData) {
       fetchChats();
 
-      // Fetch profiles
       fetch(`${API_URL}/profiles`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -122,7 +120,6 @@ function ChatPage({ userData }) { // Added userData as a prop
       const message = await response.json();
       setMessages([...messages, message]);
       setNewMessage('');
-      // Refresh messages after sending a new message
       fetch(`${API_URL}/chats/${selectedChat.id}/messages`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`

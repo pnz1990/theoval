@@ -60,6 +60,15 @@ services:
     depends_on:
       - api
 
+  docs:
+    build:
+      context: ./api
+      dockerfile: Dockerfile.docs
+    ports:
+      - "8000:8000"
+    depends_on:
+      - api
+
 volumes:
   db_data:
     driver: local

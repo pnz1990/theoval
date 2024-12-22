@@ -1,0 +1,17 @@
+FROM python:3.9-slim
+
+WORKDIR /app
+
+# Copy the source code
+COPY . /app
+
+# Install Doxygen
+RUN apt-get update && apt-get install -y doxygen
+
+# Create a default Doxyfile configuration
+RUN doxygen -g Doxyfile
+RUN sed -i 's|OUTPUT_DIRECTORY       =|OUTPUT_DIRECTORY       = docs|' Doxyfile
+RUN doxygen Doxyfile
+
+# Serve the generated documentation on port 8000
+CMD ["python", "-m", "http.server", "8000", "--directory", "docs/html"]

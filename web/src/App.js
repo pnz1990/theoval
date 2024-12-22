@@ -3,23 +3,22 @@ import { Container, Typography, Box, Button } from '@mui/material';
 import { useHistory, Route, Switch } from 'react-router-dom';
 import './App.css';
 import LogoutButton from './LogoutButton';
-import Admin from './Admin'; // Import the Admin component
-import GroupList from './GroupList'; // Import GroupList component
-import GroupForm from './GroupForm'; // Import GroupForm component
-import ProfileForm from './ProfileForm'; // Import ProfileForm component
-import ChatPage from './ChatPage'; // Import ChatPage component
+import Admin from './Admin';
+import GroupList from './GroupList';
+import GroupForm from './GroupForm';
+import ProfileForm from './ProfileForm';
+import ChatPage from './ChatPage';
 import MyGroups from './MyGroups';
-import Login from './Login'; // Import Login component
+import Login from './Login';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
 function App() {
   const [message, setMessage] = useState('');
-  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token')); // Converted to state
-  const [userData, setUserData] = useState(null); // Added state for user data
+  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'));
+  const [userData, setUserData] = useState(null);
   const history = useHistory();
 
-  // Moved fetchUserData outside of useEffect
   const fetchUserData = async () => {
     try {
       const response = await fetch(`${API_URL}/users/me`, {
@@ -29,23 +28,20 @@ function App() {
       });
       if (response.ok) {
         const data = await response.json();
-        console.log('App: Fetched userData:', data);
         setUserData(data);
       } else {
-        console.error('App: Failed to fetch userData:', response.statusText);
         history.push('/login');
       }
     } catch (error) {
-      console.error('App: Error fetching user data:', error);
       history.push('/login');
     }
   };
 
   useEffect(() => {
     if (isLoggedIn) {
-      fetchUserData(); // Fetch user data if logged in
+      fetchUserData();
     } else {
-      setUserData(null); // Ensure userData is null if not logged in
+      setUserData(null);
     }
   }, [isLoggedIn]);
 
@@ -89,35 +85,35 @@ function App() {
   return (
     <Switch>
       <Route path="/admin">
-        <Admin userData={userData} /> {/* Passed userData as prop */}
+        <Admin userData={userData} />
       </Route>
       <Route path="/groups/new">
-        <GroupForm userData={userData} /> {/* Passed userData as prop */}
+        <GroupForm userData={userData} />
       </Route>
       <Route path="/groups/:id/edit">
-        <GroupForm userData={userData} /> {/* Passed userData as prop */}
+        <GroupForm userData={userData} />
       </Route>
       <Route path="/groups/:groupId/chats">
-        <ChatPage userData={userData} /> {/* Passed userData as prop */}
+        <ChatPage userData={userData} />
       </Route>
       <Route path="/groups">
-        <GroupList userData={userData} /> {/* Passed userData as prop */}
+        <GroupList userData={userData} />
       </Route>
       <Route path="/profiles/new">
-        <ProfileForm userData={userData} /> {/* Passed userData as prop */}
+        <ProfileForm userData={userData} />
       </Route>
       <Route path="/mygroups">
-        <MyGroups userData={userData} /> {/* Passed userData as prop */}
+        <MyGroups userData={userData} />
       </Route>
       <Route path="/profiles/:id/edit">
-        <ProfileForm userData={userData} /> {/* Passed userData as prop */}
+        <ProfileForm userData={userData} />
       </Route>
       <Route path="/login">
-        <Login setIsLoggedIn={setIsLoggedIn} /> {/* Passed setIsLoggedIn as prop */}
+        <Login setIsLoggedIn={setIsLoggedIn} />
       </Route>
       <Route path="/">
         <Container maxWidth="sm">
-          {isLoggedIn && <LogoutButton setIsLoggedIn={setIsLoggedIn} />} {/* Passed setIsLoggedIn as prop */}
+          {isLoggedIn && <LogoutButton setIsLoggedIn={setIsLoggedIn} />}
           <Box sx={{ textAlign: 'center', mt: 8 }}>
             <Typography variant="h2" component="h1" gutterBottom>
               Welcome to The Oval

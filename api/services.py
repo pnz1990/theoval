@@ -1,5 +1,5 @@
 import logging
-from models import db, Group, Profile, User, Chat, chat_participants  # Import necessary models
+from models import db, Group, Profile, User, Chat, chat_participants  
 from werkzeug.exceptions import BadRequest
 from uuid import UUID
 from functools import wraps
@@ -8,6 +8,15 @@ from flask import request, jsonify
 from werkzeug.exceptions import Unauthorized
 
 def authenticate(func):
+    """
+    Decorator to authenticate routes using JWT.
+
+    Args:
+        func (callable): The route function to decorate.
+
+    Returns:
+        callable: The decorated function.
+    """
     @wraps(func)
     def wrapper(*args, **kwargs):
         try:
@@ -20,6 +29,15 @@ def authenticate(func):
     return wrapper
 
 def validate_group_data(data):
+    """
+    Validates the data for creating or updating a group.
+
+    Args:
+        data (dict): The group data.
+
+    Raises:
+        BadRequest: If validation fails.
+    """
     logging.debug(f"Validating group data: {data}")
     if 'name' not in data or not isinstance(data['name'], str):
         raise BadRequest('Invalid group name')
@@ -29,6 +47,16 @@ def validate_group_data(data):
         raise BadRequest('Invalid picture URL')
 
 def validate_profile_data(data, user_id=None):
+    """
+    Validates the data for creating or updating a profile.
+
+    Args:
+        data (dict): The profile data.
+        user_id (str, optional): ID of the user creating the profile.
+
+    Raises:
+        BadRequest: If validation fails.
+    """
     if 'name' not in data or not isinstance(data['name'], str):
         raise BadRequest('Invalid profile name')
     if 'bio' in data and not isinstance(data['bio'], str):
@@ -38,16 +66,23 @@ def validate_profile_data(data, user_id=None):
     if 'group_id' not in data or not isinstance(data['group_id'], str):
         raise BadRequest('Invalid group_id')
     if user_id:
-        # Check for existing profile by user in group
         existing_profile = Profile.query.filter_by(group_id=data['group_id'], user_id=user_id).first()
         if existing_profile:
             raise BadRequest('User already has a profile in this group')
-    # Check for duplicate profile name in group regardless of user
     name_exists = Profile.query.filter_by(group_id=data['group_id'], name=data['name']).first()
     if name_exists:
         raise BadRequest('Profile name already exists in this group')
 
 def is_strong_password(password):
+    """
+    Checks if a password is strong based on defined criteria.
+
+    Args:
+        password (str): The password to check.
+
+    Returns:
+        bool: True if strong, False otherwise.
+    """
     if len(password) < 8:
         return False
     if not any(char.isupper() for char in password):
@@ -59,17 +94,36 @@ def is_strong_password(password):
     return True
 
 def create_group(data):
+    """
+    Creates a new group and its associated general chat.
+
+    Args:
+        data (dict): The group data.
+
+    Returns:
+        Group: The created group instance.
+    """
     validate_group_data(data)
     new_group = Group(name=data['name'], picture=data.get('picture'), max_profiles=data['max_profiles'])
     db.session.add(new_group)
     db.session.commit()
-    # Create a "general" chat for the new group
+    # Create a general chat for the new group
     general_chat = Chat(name='general', group_id=new_group.id)
     db.session.add(general_chat)
     db.session.commit()
     return new_group
 
 def update_group(group, data):
+    """
+    Updates an existing group's details.
+
+    Args:
+        group (Group): The group to update.
+        data (dict): The new group data.
+
+    Returns:
+        Group: The updated group instance.
+    """
     validate_group_data(data)
     group.name = data['name']
     group.picture = data.get('picture')
@@ -78,11 +132,21 @@ def update_group(group, data):
     return group
 
 def create_profile(data, user_id):
+    """
+    Creates a new profile within a group and adds it to the general chat.
+
+    Args:
+        data (dict): The profile data.
+        user_id (str): ID of the user creating the profile.
+
+    Returns:
+        Profile: The created profile instance.
+    """
     validate_profile_data(data, user_id)
     new_profile = Profile(name=data['name'], picture=data.get('picture'), bio=data.get('bio'), group_id=data['group_id'], user_id=user_id)
     db.session.add(new_profile)
     db.session.commit()
-    # Add the new profile to the "general" chat of the group
+    # Add profile to the general chat
     general_chat = Chat.query.filter_by(group_id=data['group_id'], name='general').first()
     if general_chat:
         general_chat.participants.append(new_profile)
@@ -90,6 +154,16 @@ def create_profile(data, user_id):
     return new_profile
 
 def validate_chat_data(data, group_id=None):
+    """
+    Validates the data for creating or updating a chat.
+
+    Args:
+        data (dict): The chat data.
+        group_id (str, optional): ID of the group the chat belongs to.
+
+    Raises:
+        BadRequest: If validation fails.
+    """
     if 'name' not in data or not isinstance(data['name'], str):
         raise BadRequest('Invalid chat name')
     participant_ids = data.get('participant_ids', [])
@@ -103,6 +177,16 @@ def validate_chat_data(data, group_id=None):
             raise BadRequest('All participants must belong to the same group')
 
 def create_chat(data, group_id):
+    """
+    Creates a new chat within a group.
+
+    Args:
+        data (dict): The chat data.
+        group_id (str): ID of the group.
+
+    Returns:
+        Chat: The created chat instance.
+    """
     validate_chat_data(data, group_id)
     profiles = Profile.query.filter(Profile.id.in_(data.get('participant_ids', []))).all()
     new_chat = Chat(name=data['name'], group_id=group_id)
@@ -112,6 +196,16 @@ def create_chat(data, group_id):
     return new_chat
 
 def update_chat(chat, data):
+    """
+    Updates an existing chat's details and participants.
+
+    Args:
+        chat (Chat): The chat to update.
+        data (dict): The new chat data.
+
+    Returns:
+        Chat: The updated chat instance.
+    """
     validate_chat_data(data, chat.group_id)
     profiles = Profile.query.filter(Profile.id.in_(data['participant_ids'])).all()
     chat.name = data['name']
@@ -120,14 +214,24 @@ def update_chat(chat, data):
     return chat
 
 def get_user_info(user_id):
+    """
+    Retrieves comprehensive information about a user, including profiles, groups, and chats.
+
+    Args:
+        user_id (str): ID of the user.
+
+    Returns:
+        dict: User information.
+
+    Raises:
+        BadRequest: If user is not found.
+    """
     user = User.query.get(user_id)
     if not user:
         raise BadRequest("User not found")
     
-    # Retrieve profiles associated with the user
     profiles = Profile.query.filter_by(user_id=user_id).all()
     
-    # Extract unique groups from the user's profiles
     groups = []
     group_ids = []
     for profile in profiles:
@@ -141,7 +245,6 @@ def get_user_info(user_id):
             })
             group_ids.append(group.id)
     
-    # Fetch chats associated with the user's groups
     chats = Chat.query.filter(Chat.group_id.in_(group_ids)).all()
     chats_data = [{
         'id': str(chat.id),
@@ -156,8 +259,8 @@ def get_user_info(user_id):
         'id': str(user.id),
         'email': user.email,
         'profiles': [{'id': str(p.id), 'name': p.name, 'group_id': str(p.group_id)} for p in profiles],
-        'groups': groups,  # Only groups where the user has profiles
-        'chats': chats_data  # Chats associated with the user's groups
+        'groups': groups,  
+        'chats': chats_data  
     }
     
     return user_info

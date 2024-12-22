@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Container, TextField, Button, Box, Typography, LinearProgress } from '@mui/material';
 import { useHistory, Link } from 'react-router-dom';
 import './Register.css';
-import LogoutButton from './LogoutButton'; // Import the LogoutButton component
+import LogoutButton from './LogoutButton';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
@@ -54,8 +54,8 @@ function Register() {
       return response.json();
     })
     .then(data => {
-      localStorage.removeItem('token'); // Log out the user
-      history.push('/login'); // Redirect to login page after registration
+      localStorage.removeItem('token');
+      history.push('/login');
     })
     .catch(error => {
       setError(error.message || 'An error occurred. Please try again.');
@@ -64,7 +64,7 @@ function Register() {
 
   return (
     <Container maxWidth="sm">
-      {isLoggedIn && <LogoutButton />} {/* Conditionally render LogoutButton */}
+      {isLoggedIn && <LogoutButton />}
       <Box sx={{ textAlign: 'center', mt: 8 }}>
         <Typography variant="h4" component="h1" gutterBottom>
           Register

@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Typography, Box, Button, List, ListItem, ListItemText, ListItemSecondaryAction, IconButton, Paper, Divider, Breadcrumbs, Link } from '@mui/material';
 import { useHistory } from 'react-router-dom';
-import DeleteIcon from '@mui/icons-material/Delete';
+import DeleteIcon from '@mui/icons-material/Delete'; 
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
-function GroupList() { // Removed userData as a prop
+function GroupList({ userData }) { 
   const [groups, setGroups] = useState([]);
   const history = useHistory();
 
-  useEffect(() => { // Removed userData from dependency array
+  useEffect(() => { 
     console.log('GroupList: useEffect triggered');
     fetch(`${API_URL}/groups`, {
       headers: {
@@ -29,7 +29,7 @@ function GroupList() { // Removed userData as a prop
     .catch(error => {
       console.error('GroupList: Failed to fetch groups:', error);
     });
-  }, []); // Dependency array is now empty
+  }, []); 
 
   const handleDelete = async (id) => {
     console.log(`GroupList: Deleting group with id ${id}`);

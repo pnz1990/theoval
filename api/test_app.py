@@ -4,9 +4,12 @@ from models import db, User, Group, Profile
 
 @pytest.fixture
 def client():
+    """
+    Pytest fixture to create a test client for the Flask application.
+    """
     test_config = {
         'TESTING': True,
-        'FLASK_ENV': 'testing',  # Added to align with UUID handling
+        'FLASK_ENV': 'testing',  
         'SQLALCHEMY_DATABASE_URI': 'sqlite:///:memory:',
         'JWT_SECRET_KEY': 'test_jwt_secret_key'
     }
@@ -19,26 +22,49 @@ def client():
             db.drop_all()
 
 def authenticate_client(client, email, password):
+    """
+    Authenticates a client by registering and logging in to obtain a JWT token.
+
+    Args:
+        client: The test client.
+        email (str): User's email.
+        password (str): User's password.
+
+    Returns:
+        str: JWT token.
+    """
     client.post('/register', json={'email': email, 'password': password})
     login_response = client.post('/login', json={'email': email, 'password': password})
     token = login_response.get_json().get('token')
     return token
 
 def test_register(client):
+    """
+    Test user registration with valid credentials.
+    """
     response = client.post('/register', json={'email': 'test@example.com', 'password': 'Password1'})
     assert response.status_code == 201
 
 def test_register_weak_password(client):
+    """
+    Test user registration with a weak password.
+    """
     response = client.post('/register', json={'email': 'test@example.com', 'password': 'weakpass'})
     assert response.status_code == 400
 
 def test_login(client):
+    """
+    Test user login with valid credentials.
+    """
     client.post('/register', json={'email': 'test@example.com', 'password': 'Password1'})
     response = client.post('/login', json={'email': 'test@example.com', 'password': 'Password1'})
     assert response.status_code == 200
     assert 'token' in response.get_json()
 
 def test_create_group(client):
+    """
+    Test creating a new group.
+    """
     client.post('/register', json={'email': 'test@example.com', 'password': 'Password1'})
     login_response = client.post('/login', json={'email': 'test@example.com', 'password': 'Password1'})
     token = login_response.get_json().get('token')
@@ -48,6 +74,9 @@ def test_create_group(client):
     assert 'id' in response.get_json()
 
 def test_create_profile(client):
+    """
+    Test creating a new profile within a group.
+    """
     client.post('/register', json={'email': 'test@example.com', 'password': 'Password1'})
     login_response = client.post('/login', json={'email': 'test@example.com', 'password': 'Password1'})
     token = login_response.get_json().get('token')
@@ -59,6 +88,9 @@ def test_create_profile(client):
     assert 'id' in response.get_json()
 
 def test_create_duplicate_profile(client):
+    """
+    Test creating a duplicate profile within the same group.
+    """
     client.post('/register', json={'email': 'test@example.com', 'password': 'Password1'})
     login_response = client.post('/login', json={'email': 'test@example.com', 'password': 'Password1'})
     token = login_response.get_json().get('token')
@@ -70,6 +102,9 @@ def test_create_duplicate_profile(client):
     assert response.status_code == 400
 
 def test_create_group_invalid_data(client):
+    """
+    Test creating a group with invalid data types.
+    """
     client.post('/register', json={'email': 'test@example.com', 'password': 'Password1'})
     login_response = client.post('/login', json={'email': 'test@example.com', 'password': 'Password1'})
     token = login_response.get_json().get('token')
@@ -78,6 +113,9 @@ def test_create_group_invalid_data(client):
     assert response.status_code == 400
 
 def test_create_profile_invalid_data(client):
+    """
+    Test creating a profile with invalid data types.
+    """
     client.post('/register', json={'email': 'test@example.com', 'password': 'Password1'})
     login_response = client.post('/login', json={'email': 'test@example.com', 'password': 'Password1'})
     token = login_response.get_json().get('token')
@@ -88,6 +126,9 @@ def test_create_profile_invalid_data(client):
     assert response.status_code == 400
 
 def test_update_group_invalid_data(client):
+    """
+    Test updating a group with invalid data types.
+    """
     client.post('/register', json={'email': 'test@example.com', 'password': 'Password1'})
     login_response = client.post('/login', json={'email': 'test@example.com', 'password': 'Password1'})
     token = login_response.get_json().get('token')
@@ -98,6 +139,9 @@ def test_update_group_invalid_data(client):
     assert response.status_code == 400
 
 def test_create_duplicate_profile_name(client):
+    """
+    Test creating profiles with duplicate names across different users.
+    """
     # Register and login the first user
     client.post('/register', json={'email': 'user1@example.com', 'password': 'Password1'})
     login_response1 = client.post('/login', json={'email': 'user1@example.com', 'password': 'Password1'})
@@ -112,7 +156,6 @@ def test_create_duplicate_profile_name(client):
     }, headers={'Authorization': f'Bearer {token1}'})
     group_id = group_response.get_json()['id']
 
-    # First user creates a profile
     client.post('/profiles', json={
         'name': 'Unique Profile',
         'picture': 'http://example.com/pic.jpg',
@@ -120,15 +163,13 @@ def test_create_duplicate_profile_name(client):
         'group_id': group_id
     }, headers={'Authorization': f'Bearer {token1}'})
 
-    # Register and login the second user
     client.post('/register', json={'email': 'user2@example.com', 'password': 'Password2'})
     login_response2 = client.post('/login', json={'email': 'user2@example.com', 'password': 'Password2'})
     token2 = login_response2.get_json().get('token')
     assert token2 is not None
 
-    # Second user attempts to create a profile with the same name in the same group
     response = client.post('/profiles', json={
-        'name': 'Unique Profile',  # Duplicate name
+        'name': 'Unique Profile',  
         'picture': 'http://example.com/pic2.jpg',
         'bio': 'Second user bio',
         'group_id': group_id
@@ -137,21 +178,20 @@ def test_create_duplicate_profile_name(client):
     assert response.status_code == 400
 
 def test_create_chat(client):
-    # Register and login User 1
+    """
+    Test creating a chat with valid participants.
+    """
     client.post('/register', json={'email': 'user1@example.com', 'password': 'Password1'})
     login_response1 = client.post('/login', json={'email': 'user1@example.com', 'password': 'Password1'})
     token1 = login_response1.get_json().get('token')
     assert token1 is not None
-    # Create a group with User 1
     group_response = client.post('/groups', json={'name': 'Test Group', 'picture': 'http://example.com/pic.jpg', 'max_profiles': 5},
                                headers={'Authorization': f'Bearer {token1}'})
     group_id = group_response.get_json()['id']
-    # Register and login User 2
     client.post('/register', json={'email': 'user2@example.com', 'password': 'Password2'})
     login_response2 = client.post('/login', json={'email': 'user2@example.com', 'password': 'Password2'})
     token2 = login_response2.get_json().get('token')
     assert token2 is not None
-    # Create profiles for both users
     profile1_response = client.post('/profiles', 
                           json={'name': 'Profile 1', 'picture': 'http://example.com/pic1.jpg', 'bio': 'Bio 1', 'group_id': group_id},
                           headers={'Authorization': f'Bearer {token1}'})
@@ -172,12 +212,14 @@ def test_create_chat(client):
     assert 'id' in response.get_json()
 
 def test_create_chat_no_participants(client):
+    """
+    Test creating a chat without specifying participants.
+    """
     client.post('/register', json={'email': 'user1@example.com', 'password': 'Password1'})
     login_resp = client.post('/login', json={'email': 'user1@example.com', 'password': 'Password1'})
     token = login_resp.get_json().get('token')
     assert token
 
-    # Create a group
     group_resp = client.post('/groups', json={
         'name': 'NoParticipantsGroup',
         'picture': 'http://example.com/pic.jpg',
@@ -185,28 +227,26 @@ def test_create_chat_no_participants(client):
     }, headers={'Authorization': f'Bearer {token}'})
     group_id = group_resp.get_json()['id']
 
-    # Create chat without participants
     chat_data = {'name': 'Empty Chat'}
     response = client.post(f'/groups/{group_id}/chats', json=chat_data, headers={'Authorization': f'Bearer {token}'})
     assert response.status_code == 201
     assert 'id' in response.get_json()
 
 def test_list_chats(client):
-    # Register and login User 1
+    """
+    Test listing chats within a group.
+    """
     client.post('/register', json={'email': 'user1@example.com', 'password': 'Password1'})
     login_response1 = client.post('/login', json={'email': 'user1@example.com', 'password': 'Password1'})
     token1 = login_response1.get_json().get('token')
     assert token1 is not None
-    # Create a group with User 1
     group_response = client.post('/groups', json={'name': 'Test Group', 'picture': 'http://example.com/pic.jpg', 'max_profiles': 5},
                                headers={'Authorization': f'Bearer {token1}'})
     group_id = group_response.get_json()['id']
-    # Register and login User 2
     client.post('/register', json={'email': 'user2@example.com', 'password': 'Password2'})
     login_response2 = client.post('/login', json={'email': 'user2@example.com', 'password': 'Password2'})
     token2 = login_response2.get_json().get('token')
     assert token2 is not None
-    # Create profiles for both users
     profile1_response = client.post('/profiles', 
                           json={'name': 'Profile 1', 'picture': 'http://example.com/pic1.jpg', 'bio': 'Bio 1', 'group_id': group_id},
                           headers={'Authorization': f'Bearer {token1}'})
@@ -217,7 +257,6 @@ def test_list_chats(client):
     profile2_id = profile2_response.get_json().get('id')
     assert profile1_id is not None
     assert profile2_id is not None
-    # Create a chat with both profiles
     chat_data = {
         'name': 'Test Chat',
         'participant_ids': [profile1_id, profile2_id]
@@ -234,21 +273,20 @@ def test_list_chats(client):
     assert all('updated_at' in chat for chat in chats)
 
 def test_get_chat(client):
-    # Register and login User 1
+    """
+    Test retrieving a specific chat by ID.
+    """
     client.post('/register', json={'email': 'user1@example.com', 'password': 'Password1'})
     login_response1 = client.post('/login', json={'email': 'user1@example.com', 'password': 'Password1'})
     token1 = login_response1.get_json().get('token')
     assert token1 is not None
-    # Create a group with User 1
     group_response = client.post('/groups', json={'name': 'Test Group', 'picture': 'http://example.com/pic.jpg', 'max_profiles': 5},
                                headers={'Authorization': f'Bearer {token1}'})
     group_id = group_response.get_json()['id']
-    # Register and login User 2
     client.post('/register', json={'email': 'user2@example.com', 'password': 'Password2'})
     login_response2 = client.post('/login', json={'email': 'user2@example.com', 'password': 'Password2'})
     token2 = login_response2.get_json().get('token')
     assert token2 is not None
-    # Create profiles for both users
     profile1_response = client.post('/profiles', 
                           json={'name': 'Profile 1', 'picture': 'http://example.com/pic1.jpg', 'bio': 'Bio 1', 'group_id': group_id},
                           headers={'Authorization': f'Bearer {token1}'})
@@ -259,7 +297,6 @@ def test_get_chat(client):
     profile2_id = profile2_response.get_json().get('id')
     assert profile1_id is not None
     assert profile2_id is not None
-    # Create a chat with both profiles
     chat_data = {
         'name': 'Test Chat',
         'participant_ids': [profile1_id, profile2_id]
@@ -267,7 +304,6 @@ def test_get_chat(client):
     chat_response = client.post(f'/groups/{group_id}/chats', json=chat_data, headers={'Authorization': f'Bearer {token1}'})
     chat_id = chat_response.get_json().get('id')
     assert chat_id is not None
-    # Retrieve the chat
     response = client.get(f'/chats/{chat_id}', headers={'Authorization': f'Bearer {token1}'})
     assert response.status_code == 200
     chat = response.get_json()
@@ -275,21 +311,20 @@ def test_get_chat(client):
     assert len(chat['participant_ids']) == 2
 
 def test_update_chat(client):
-    # Register and login User 1
+    """
+    Test updating a chat's details and participants.
+    """
     client.post('/register', json={'email': 'user1@example.com', 'password': 'Password1'})
     login_response1 = client.post('/login', json={'email': 'user1@example.com', 'password': 'Password1'})
     token1 = login_response1.get_json().get('token')
     assert token1 is not None
-    # Create a group with User 1
     group_response = client.post('/groups', json={'name': 'Test Group', 'picture': 'http://example.com/pic.jpg', 'max_profiles': 5},
                                headers={'Authorization': f'Bearer {token1}'})
     group_id = group_response.get_json()['id']
-    # Register and login User 2
     client.post('/register', json={'email': 'user2@example.com', 'password': 'Password2'})
     login_response2 = client.post('/login', json={'email': 'user2@example.com', 'password': 'Password2'})
     token2 = login_response2.get_json().get('token')
     assert token2 is not None
-    # Create profiles for both users
     profile1_response = client.post('/profiles', 
                           json={'name': 'Profile 1', 'picture': 'http://example.com/pic1.jpg', 'bio': 'Bio 1', 'group_id': group_id},
                           headers={'Authorization': f'Bearer {token1}'})
@@ -300,7 +335,6 @@ def test_update_chat(client):
     profile2_id = profile2_response.get_json().get('id')
     assert profile1_id is not None
     assert profile2_id is not None
-    # Create a chat with both profiles
     chat_data = {
         'name': 'Test Chat',
         'participant_ids': [profile1_id, profile2_id]
@@ -308,30 +342,28 @@ def test_update_chat(client):
     chat_response = client.post(f'/groups/{group_id}/chats', json=chat_data, headers={'Authorization': f'Bearer {token1}'})
     chat_id = chat_response.get_json().get('id')
     assert chat_id is not None
-    # Update the chat by removing one participant
     update_data = {
         'name': 'Updated Chat',
-        'participant_ids': [profile1_id]  # Remove one participant
+        'participant_ids': [profile1_id]  
     }
     response = client.put(f'/chats/{chat_id}', json=update_data, headers={'Authorization': f'Bearer {token1}'})
     assert response.status_code == 200
-    # Verify the update
     get_response = client.get(f'/chats/{chat_id}', headers={'Authorization': f'Bearer {token1}'})
     updated_chat = get_response.get_json()
     assert updated_chat['name'] == 'Updated Chat'
     assert len(updated_chat['participant_ids']) == 1
 
 def test_create_chat_invalid_participants(client):
-    # Register and login
+    """
+    Test creating a chat with invalid participant IDs.
+    """
     client.post('/register', json={'email': 'test@example.com', 'password': 'Password1'})
     login_response = client.post('/login', json={'email': 'test@example.com', 'password': 'Password1'})
     token = login_response.get_json().get('token')
     assert token is not None
-    # Create a group
     group_response = client.post('/groups', json={'name': 'Test Group', 'picture': 'http://example.com/pic.jpg', 'max_profiles': 5},
                                headers={'Authorization': f'Bearer {token}'})
     group_id = group_response.get_json()['id']
-    # Try to create chat with invalid participant IDs
     chat_data = {
         'name': 'Test Chat',
         'participant_ids': ['not-a-valid-uuid']
@@ -341,6 +373,9 @@ def test_create_chat_invalid_participants(client):
     response_data = response.get_json()
 
 def test_create_group_creates_general_chat(client):
+    """
+    Test that creating a group automatically creates a 'general' chat.
+    """
     client.post('/register', json={'email': 'test@example.com', 'password': 'Password1'})
     login_response = client.post('/login', json={'email': 'test@example.com', 'password': 'Password1'})
     token = login_response.get_json().get('token')
@@ -355,6 +390,9 @@ def test_create_group_creates_general_chat(client):
     assert chats[0]['name'] == 'general'
 
 def test_create_profile_adds_to_general_chat(client):
+    """
+    Test that creating a profile adds it to the 'general' chat.
+    """
     client.post('/register', json={'email': 'test@example.com', 'password': 'Password1'})
     login_response = client.post('/login', json={'email': 'test@example.com', 'password': 'Password1'})
     token = login_response.get_json().get('token')
@@ -371,6 +409,9 @@ def test_create_profile_adds_to_general_chat(client):
     assert profile_id in general_chat['participant_ids']
 
 def test_create_message(client):
+    """
+    Test creating a message within a chat.
+    """
     client.post('/register', json={'email': 'user1@example.com', 'password': 'Password1'})
     login_response1 = client.post('/login', json={'email': 'user1@example.com', 'password': 'Password1'})
     token1 = login_response1.get_json().get('token')
@@ -393,6 +434,9 @@ def test_create_message(client):
     assert 'id' in response.get_json()
 
 def test_get_messages(client):
+    """
+    Test retrieving messages from a chat.
+    """
     client.post('/register', json={'email': 'user1@example.com', 'password': 'Password1'})
     login_response1 = client.post('/login', json={'email': 'user1@example.com', 'password': 'Password1'})
     token1 = login_response1.get_json().get('token')
@@ -420,6 +464,9 @@ def test_get_messages(client):
     assert all('created_at' in message for message in messages)
 
 def test_get_user_info(client):
+    """
+    Test retrieving user information.
+    """
     token = authenticate_client(client, 'user@example.com', 'Password1')
     # Create group
     group_resp = client.post('/groups', json={'name': 'Test Group', 'picture': 'http://example.com/pic.jpg', 'max_profiles': 5},
@@ -447,13 +494,19 @@ def test_get_user_info(client):
     assert 'chats' in data
     assert len(data['profiles']) == 1
     assert len(data['groups']) == 1
-    assert len(data['chats']) == 2  # Updated from 1 to 2 to include "general" chat
+    assert len(data['chats']) == 2  
 
 def test_get_user_info_unauthorized(client):
+    """
+    Test retrieving user information without authorization.
+    """
     response = client.get('/users/me')
     assert response.status_code == 401
 
 def test_get_user_info_no_profiles(client):
+    """
+    Test retrieving user information when the user has no profiles.
+    """
     token = authenticate_client(client, 'user2@example.com', 'Password2')
     response = client.get('/users/me', headers={'Authorization': f'Bearer {token}'})
     assert response.status_code == 200
@@ -466,32 +519,31 @@ def test_get_user_info_no_profiles(client):
     assert len(data['chats']) == 0
 
 def test_get_user_info_multiple_profiles(client):
+    """
+    Test retrieving user information when the user has multiple profiles.
+    """
     token = authenticate_client(client, 'multiuser@example.com', 'Password1')
-    # Create groups
     group1_resp = client.post('/groups', json={'name': 'Group One', 'picture': 'http://example.com/pic1.jpg', 'max_profiles': 5},
                               headers={'Authorization': f'Bearer {token}'})
     group1_id = group1_resp.get_json()['id']
     group2_resp = client.post('/groups', json={'name': 'Group Two', 'picture': 'http://example.com/pic2.jpg', 'max_profiles': 5},
                               headers={'Authorization': f'Bearer {token}'})
     group2_id = group2_resp.get_json()['id']
-    # Create profiles
     profile1_resp = client.post('/profiles', json={'name': 'Profile One', 'picture': 'http://example.com/pic1.jpg', 'bio': 'Bio One', 'group_id': group1_id},
                                  headers={'Authorization': f'Bearer {token}'})
     profile2_resp = client.post('/profiles', json={'name': 'Profile Two', 'picture': 'http://example.com/pic2.jpg', 'bio': 'Bio Two', 'group_id': group2_id},
                                  headers={'Authorization': f'Bearer {token}'})
     profile1_id = profile1_resp.get_json()['id']
     profile2_id = profile2_resp.get_json()['id']
-    # Create chats
     chat1_resp = client.post('/groups/{}/chats'.format(group1_id), json={'name': 'Chat One', 'participant_ids': [profile1_id]},
                              headers={'Authorization': f'Bearer {token}'})
     chat2_resp = client.post('/groups/{}/chats'.format(group2_id), json={'name': 'Chat Two', 'participant_ids': [profile2_id]},
                              headers={'Authorization': f'Bearer {token}'})
     chat1_id = chat1_resp.get_json()['id']
     chat2_id = chat2_resp.get_json()['id']
-    # Get user info
     response = client.get('/users/me', headers={'Authorization': f'Bearer {token}'})
     assert response.status_code == 200
     data = response.get_json()
     assert len(data['profiles']) == 2
     assert len(data['groups']) == 2
-    assert len(data['chats']) == 4  # Updated from 2 to 4 to include "general" chats for each group
+    assert len(data['chats']) == 4

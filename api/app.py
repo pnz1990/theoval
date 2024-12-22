@@ -12,6 +12,15 @@ from services import (
 import logging
 
 def create_app(test_config=None):
+    """
+    Creates and configures the Flask application.
+
+    Args:
+        test_config (dict, optional): Configuration for testing.
+
+    Returns:
+        Flask: Configured Flask application.
+    """
     app = Flask(__name__)
     CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True, allow_headers=["Content-Type", "Authorization"], methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
     
@@ -37,17 +46,40 @@ def create_app(test_config=None):
     # Global error handler for BadRequest
     @app.errorhandler(BadRequest)
     def handle_bad_request(e):
+        """
+        Handles BadRequest exceptions globally.
+
+        Args:
+            e (BadRequest): The exception instance.
+
+        Returns:
+            Response: JSON response with error message and status code 400.
+        """
         return jsonify({'message': e.description}), 400
     
     ### Route Definitions Start ###
     
     @app.route('/health')
     def health_check():
+        """
+        Health check endpoint to verify the application's status.
+
+        Returns:
+            Response: JSON response indicating health status.
+        """
         return jsonify({'status': 'healthy'}), 200
     
     @app.route('/groups', methods=['POST'])
     @jwt_required()
     def create_group_route():
+        """
+        Endpoint to create a new group.
+
+        Requires JWT authentication.
+
+        Returns:
+            Response: JSON response with the created group's ID.
+        """
         data = request.get_json()
         app.logger.debug('Create group data: %s', data)
         app.logger.debug('Type of max_profiles: %s', type(data.get('max_profiles')))
@@ -57,6 +89,14 @@ def create_app(test_config=None):
     @app.route('/groups', methods=['GET'])
     @jwt_required()
     def get_groups():
+        """
+        Endpoint to retrieve all groups.
+
+        Requires JWT authentication.
+
+        Returns:
+            Response: JSON list of groups.
+        """
         app.logger.debug('Fetching all groups')
         groups = Group.query.all()
         return jsonify([{'id': group.id, 'name': group.name, 'picture': group.picture, 'max_profiles': group.max_profiles} for group in groups])
@@ -64,6 +104,17 @@ def create_app(test_config=None):
     @app.route('/groups/<group_id>', methods=['GET'])
     @jwt_required()
     def get_group(group_id):
+        """
+        Endpoint to retrieve a specific group by ID.
+
+        Requires JWT authentication.
+
+        Args:
+            group_id (str): ID of the group.
+
+        Returns:
+            Response: JSON representation of the group.
+        """
         app.logger.debug('Fetching group with id: %s', group_id)
         group = Group.query.get_or_404(group_id)
         return jsonify({'id': group.id, 'name': group.name, 'picture': group.picture, 'max_profiles': group.max_profiles})
@@ -71,6 +122,17 @@ def create_app(test_config=None):
     @app.route('/groups/<group_id>', methods=['PUT'])
     @jwt_required()
     def update_group_route(group_id):
+        """
+        Endpoint to update an existing group.
+
+        Requires JWT authentication.
+
+        Args:
+            group_id (str): ID of the group to update.
+
+        Returns:
+            Response: JSON response with the updated group's ID.
+        """
         data = request.get_json()
         app.logger.debug('Update group data: %s', data)
         group = Group.query.get_or_404(group_id)
@@ -80,6 +142,17 @@ def create_app(test_config=None):
     @app.route('/groups/<group_id>', methods=['DELETE'])
     @jwt_required()
     def delete_group(group_id):
+        """
+        Endpoint to delete a group.
+
+        Requires JWT authentication.
+
+        Args:
+            group_id (str): ID of the group to delete.
+
+        Returns:
+            Response: Empty response with status code 204.
+        """
         app.logger.debug('Deleting group with id: %s', group_id)
         group = Group.query.get_or_404(group_id)
         db.session.delete(group)
@@ -89,6 +162,14 @@ def create_app(test_config=None):
     @app.route('/profiles/check', methods=['POST'])
     @jwt_required()
     def check_profile():
+        """
+        Endpoint to check if a user already has a profile in a specific group.
+
+        Requires JWT authentication.
+
+        Returns:
+            Response: JSON message indicating the result.
+        """
         data = request.get_json()
         app.logger.debug('Check profile data: %s', data)
         user_id = get_jwt_identity()
@@ -100,6 +181,14 @@ def create_app(test_config=None):
     @app.route('/profiles', methods=['POST'])
     @jwt_required()
     def create_profile_route():
+        """
+        Endpoint to create a new profile.
+
+        Requires JWT authentication.
+
+        Returns:
+            Response: JSON response with the created profile's details.
+        """
         data = request.get_json()
         app.logger.debug('Create profile data: %s', data)
         user_id = get_jwt_identity()
@@ -118,6 +207,14 @@ def create_app(test_config=None):
     @app.route('/profiles', methods=['GET'])
     @jwt_required()
     def get_profiles():
+        """
+        Endpoint to retrieve all profiles.
+
+        Requires JWT authentication.
+
+        Returns:
+            Response: JSON list of profiles.
+        """
         app.logger.debug('Fetching all profiles')
         profiles = Profile.query.all()
         return jsonify([{'id': profile.id, 'name': profile.name, 'picture': profile.picture, 'bio': profile.bio, 'group_id': profile.group_id} for profile in profiles])
@@ -125,12 +222,29 @@ def create_app(test_config=None):
     @app.route('/profiles/<profile_id>', methods=['GET'])
     @jwt_required()
     def get_profile(profile_id):
+        """
+        Endpoint to retrieve a specific profile by ID.
+
+        Requires JWT authentication.
+
+        Args:
+            profile_id (str): ID of the profile.
+
+        Returns:
+            Response: JSON representation of the profile.
+        """
         app.logger.debug('Fetching profile with id: %s', profile_id)
         profile = Profile.query.get_or_404(profile_id)
         return jsonify({'id': profile.id, 'name': profile.name, 'picture': profile.picture, 'bio': profile.bio, 'group_id': profile.group_id})
     
     @app.route('/register', methods=['POST'])
     def register():
+        """
+        Endpoint to register a new user.
+
+        Returns:
+            Response: JSON message indicating the result.
+        """
         data = request.get_json()
         app.logger.debug('Register data: %s', data)
         if User.query.filter_by(email=data['email']).first():
@@ -144,6 +258,12 @@ def create_app(test_config=None):
     
     @app.route('/login', methods=['POST'])
     def login():
+        """
+        Endpoint to authenticate a user and provide a JWT token.
+
+        Returns:
+            Response: JSON response with the JWT token.
+        """
         data = request.get_json()
         app.logger.debug('Login data: %s', data)
         user = User.query.filter_by(email=data['email']).first()
@@ -155,6 +275,12 @@ def create_app(test_config=None):
     @app.route('/protected', methods=['GET'])
     @jwt_required()
     def protected():
+        """
+        Protected endpoint to verify JWT authentication.
+
+        Returns:
+            Response: JSON message with user ID.
+        """
         current_user_id = get_jwt_identity()
         app.logger.debug('Protected route accessed by user: %s', current_user_id)
         return jsonify({'message': f'Hello user {current_user_id}'}), 200
@@ -162,6 +288,17 @@ def create_app(test_config=None):
     @app.route('/groups/<group_id>/chats', methods=['POST'])
     @jwt_required()
     def create_chat_route(group_id):
+        """
+        Endpoint to create a new chat within a group.
+
+        Requires JWT authentication.
+
+        Args:
+            group_id (str): ID of the group.
+
+        Returns:
+            Response: JSON response with the created chat's ID.
+        """
         data = request.get_json()
         app.logger.debug('Create chat data: %s', data)
         try:
@@ -179,6 +316,17 @@ def create_app(test_config=None):
     @app.route('/groups/<group_id>/chats', methods=['GET'])
     @jwt_required()
     def list_chats(group_id):
+        """
+        Endpoint to list all chats within a group, optionally filtered by profile ID.
+
+        Requires JWT authentication.
+
+        Args:
+            group_id (str): ID of the group.
+
+        Returns:
+            Response: JSON list of chats.
+        """
         app.logger.debug('Listing chats for group: %s', group_id)
         profile_id = request.args.get('profile_id')
         if profile_id:
@@ -196,6 +344,17 @@ def create_app(test_config=None):
     @app.route('/chats/<chat_id>', methods=['GET'])
     @jwt_required()
     def get_chat(chat_id):
+        """
+        Endpoint to retrieve a specific chat by ID.
+
+        Requires JWT authentication.
+
+        Args:
+            chat_id (str): ID of the chat.
+
+        Returns:
+            Response: JSON representation of the chat.
+        """
         app.logger.debug('Fetching chat with id: %s', chat_id)
         chat = Chat.query.get_or_404(chat_id)
         return jsonify({
@@ -210,6 +369,17 @@ def create_app(test_config=None):
     @app.route('/chats/<chat_id>', methods=['PUT'])
     @jwt_required()
     def update_chat_route(chat_id):
+        """
+        Endpoint to update an existing chat's details.
+
+        Requires JWT authentication.
+
+        Args:
+            chat_id (str): ID of the chat to update.
+
+        Returns:
+            Response: JSON response with the updated chat's ID.
+        """
         data = request.get_json()
         app.logger.debug('Update chat data: %s', data)
         chat = Chat.query.get_or_404(chat_id)
@@ -219,6 +389,14 @@ def create_app(test_config=None):
     @app.route('/messages', methods=['POST'])
     @jwt_required()
     def create_message():
+        """
+        Endpoint to create a new message within a chat.
+
+        Requires JWT authentication.
+
+        Returns:
+            Response: JSON response with the created message's ID.
+        """
         data = request.get_json()
         app.logger.debug('Create message data: %s', data)
         new_message = Message(content=data['content'], chat_id=data['chat_id'], profile_id=data['profile_id'])
@@ -229,6 +407,17 @@ def create_app(test_config=None):
     @app.route('/chats/<chat_id>/messages', methods=['GET'])
     @jwt_required()
     def get_messages(chat_id):
+        """
+        Endpoint to retrieve all messages from a chat.
+
+        Requires JWT authentication.
+
+        Args:
+            chat_id (str): ID of the chat.
+
+        Returns:
+            Response: JSON list of messages.
+        """
         app.logger.debug('Fetching messages for chat: %s', chat_id)
         messages = Message.query.filter_by(chat_id=chat_id).order_by(Message.created_at).all()
         return jsonify([{
@@ -242,6 +431,14 @@ def create_app(test_config=None):
     @app.route('/users/me', methods=['GET'])
     @authenticate
     def get_me():
+        """
+        Endpoint to retrieve the authenticated user's information.
+
+        Requires JWT authentication.
+
+        Returns:
+            Response: JSON representation of the user's information.
+        """
         user_id = request.user_id
         try:
             user_info = get_user_info(user_id)

@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 import { Container, TextField, Button, Box, Typography } from '@mui/material';
 import { useHistory, Link } from 'react-router-dom';
 import './Login.css';
-import LogoutButton from './LogoutButton'; // Import the LogoutButton component
+import LogoutButton from './LogoutButton';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
-function Login({ setIsLoggedIn }) { // Received setIsLoggedIn as a prop
+function Login({ setIsLoggedIn }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -25,7 +25,7 @@ function Login({ setIsLoggedIn }) { // Received setIsLoggedIn as a prop
     const data = await response.json();
     if (response.ok) {
       localStorage.setItem('token', data.token);
-      setIsLoggedIn(true); // Update login state
+      setIsLoggedIn(true);
       history.push('/');
     } else {
       setError(data.message);
@@ -34,7 +34,7 @@ function Login({ setIsLoggedIn }) { // Received setIsLoggedIn as a prop
 
   return (
     <Container maxWidth="sm">
-      {isLoggedIn && <LogoutButton />} {/* Conditionally render LogoutButton */}
+      {isLoggedIn && <LogoutButton />}
       <Box sx={{ textAlign: 'center', mt: 8 }}>
         <Typography variant="h4" component="h1" gutterBottom>
           Login

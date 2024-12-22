@@ -4,12 +4,12 @@ import { useHistory } from 'react-router-dom';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
-function ProfileList({ userData }) { // Added userData as a prop
+function ProfileList({ userData }) { 
   const [profiles, setProfiles] = useState([]);
   const history = useHistory();
 
   useEffect(() => {
-    if (userData) { // Use userData to fetch profiles
+    if (userData) { 
       fetch(`${API_URL}/profiles`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`

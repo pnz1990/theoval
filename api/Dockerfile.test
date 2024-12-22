@@ -1,26 +1,25 @@
-# Use an official Python runtime as a parent image
 FROM python:3.8-slim
 
-# Set the working directory
+# Set working directory
 WORKDIR /app
 
-# Install necessary packages
+# Install necessary packages and upgrade pip
 RUN apt-get update && \
     apt-get install -y postgresql-client curl && \
     pip install --upgrade pip
 
-# Copy requirements.txt and install dependencies
+# Copy and install dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the current directory contents into the container at /app
+# Copy the entire application code
 COPY . .
 
-# Set the PYTHONPATH environment variable
+# Set Python path
 ENV PYTHONPATH=/app
 
-# Install test dependencies
+# Install testing frameworks
 RUN pip install pytest pytest-flask
 
-# Command to run tests
+# Define the default command to run tests
 CMD ["pytest"]
