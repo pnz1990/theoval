@@ -1,3 +1,7 @@
+/**
+ * @file index.js
+ * @description Entry point of the React application. It renders the root App component within a Router.
+ */
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { BrowserRouter as Router } from 'react-router-dom';

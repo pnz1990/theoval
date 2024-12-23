@@ -1,3 +1,7 @@
+/**
+ * @file Register.js
+ * @description Provides the user registration functionality, validating password strength and matching.
+ */
 import React, { useState } from 'react';
 import { Container, TextField, Button, Box, Typography, LinearProgress } from '@mui/material';
 import { useHistory, Link } from 'react-router-dom';
@@ -6,6 +10,11 @@ import LogoutButton from './LogoutButton';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
+/**
+ * @component Register
+ * @description Renders a registration form with password strength validation.
+ * @returns {JSX.Element}
+ */
 function Register() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -15,6 +24,11 @@ function Register() {
   const history = useHistory();
   const isLoggedIn = !!localStorage.getItem('token');
 
+  /**
+   * @function handlePasswordChange
+   * @description Updates password state and recalculates password strength.
+   * @param {object} e - The event containing the new password value.
+   */
   const handlePasswordChange = (e) => {
     const value = e.target.value;
     setPassword(value);
@@ -30,6 +44,11 @@ function Register() {
     setPasswordStrength(strength);
   };
 
+  /**
+   * @function handleSubmit
+   * @description Sends form data to register a new user account.
+   * @param {object} e - The event preventing default submission.
+   */
   const handleSubmit = (e) => {
     e.preventDefault();
     if (password !== confirmPassword) {

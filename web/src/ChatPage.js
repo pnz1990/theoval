@@ -1,9 +1,20 @@
+/**
+ * @file ChatPage.js
+ * @description Manages chat sessions within a group, including real-time messages and profile viewing.
+ */
 import React, { useState, useEffect, useRef } from 'react';
 import { Container, Box, List, ListItem, ListItemText, TextField, Button, Typography, Paper, Avatar, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import { useParams } from 'react-router-dom';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
+/**
+ * @component ChatPage
+ * @description Renders chats and messages for a specific group with profile previews.
+ * @param {object} props - React props.
+ * @param {object} props.userData - Contains profiles and other user information.
+ * @returns {JSX.Element}
+ */
 function ChatPage({ userData }) {
   const [chats, setChats] = useState([]);
   const [messages, setMessages] = useState([]);
@@ -44,6 +55,10 @@ function ChatPage({ userData }) {
     setChats(data);
   };
 
+  /**
+   * @function handleCreateChat
+   * @description Creates a new chat thread in the current group.
+   */
   const handleCreateChat = async () => {
     if (newChatName.trim() === '') return;
 
@@ -104,6 +119,10 @@ function ChatPage({ userData }) {
     }
   }, [selectedChat]);
 
+  /**
+   * @function handleSendMessage
+   * @description Sends a new message in the selected chat thread.
+   */
   const handleSendMessage = async () => {
     if (newMessage.trim() === '') return;
 

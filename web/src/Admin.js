@@ -1,9 +1,18 @@
+/**
+ * @file Admin.js
+ * @description Renders the admin dashboard, allowing navigation to group creation and management.
+ */
 import React, { useEffect, useState } from 'react';
 import { Container, Typography, Box, Button, Breadcrumbs, Link } from '@mui/material';
 import { useHistory, Route, Switch } from 'react-router-dom';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
+/**
+ * @component Admin
+ * @description Provides admin-level actions such as group creation and viewing protected routes.
+ * @returns {JSX.Element}
+ */
 function Admin() {
   const [message, setMessage] = useState('');
   const history = useHistory();

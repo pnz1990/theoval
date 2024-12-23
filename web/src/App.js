@@ -1,3 +1,7 @@
+/**
+ * @file App.js
+ * @description Root component handling global routes, authentication, and main layout.
+ */
 import React, { useEffect, useState } from 'react';
 import { Container, Typography, Box, Button } from '@mui/material';
 import { useHistory, Route, Switch } from 'react-router-dom';
@@ -13,6 +17,11 @@ import Login from './Login';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
+/**
+ * @component App
+ * @description Manages global state such as user login and routing to different pages.
+ * @returns {JSX.Element}
+ */
 function App() {
   const [message, setMessage] = useState('');
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'));

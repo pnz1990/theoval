@@ -1,3 +1,7 @@
+/**
+ * @file Login.js
+ * @description Handles user login through an email/password form and updates authentication state.
+ */
 import React, { useState } from 'react';
 import { Container, TextField, Button, Box, Typography } from '@mui/material';
 import { useHistory, Link } from 'react-router-dom';
@@ -6,6 +10,13 @@ import LogoutButton from './LogoutButton';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
+/**
+ * @component Login
+ * @description Renders a login form and processes user credentials on submission.
+ * @param {object} props - React props.
+ * @param {function} props.setIsLoggedIn - Sets the login state upon successful authentication.
+ * @returns {JSX.Element}
+ */
 function Login({ setIsLoggedIn }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

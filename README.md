@@ -396,6 +396,17 @@ The Oval is a comprehensive platform designed to facilitate group management, pr
    yarn start
    ```
 
+## Local Documentation
+
+To build and serve documentation locally, run:
+
+```bash
+docker build -f dockerfile.docs -t theoval-docs .
+docker run -p 8000:80 theoval-docs
+```
+
+*Note: The documentation is automatically generated from the `api/docs` and `web/docs` directories.*
+
 ## Usage
 
 1. **Register a New User:**
@@ -403,11 +414,11 @@ The Oval is a comprehensive platform designed to facilitate group management, pr
 
 2. **Login:**
    - Navigate to `/login` and authenticate using your credentials.
-
-3. **Manage Groups:**
    - Access the Admin Area to create, update, or delete groups.
 
-4. **Create Profiles:**
+   - Access the Admin Area to create, update, or delete groups.
+
+
    - Create profiles within your groups to participate in chats.
 
 5. **Join and Chat:**
@@ -429,7 +440,7 @@ Contributions are welcome! Please follow these steps:
 4. **Push to the Branch**
    ```bash
    git push origin feature/YourFeature
-   ```
+
 5. **Open a Pull Request**
 
 Please ensure your code adheres to the project's coding standards and all tests pass.

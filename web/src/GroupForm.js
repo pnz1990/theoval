@@ -1,9 +1,20 @@
+/**
+ * @file GroupForm.js
+ * @description Form for creating or updating a group, requiring authentication.
+ */
 import React, { useState, useEffect } from 'react';
 import { Container, TextField, Button, Box, Typography, Paper, Breadcrumbs, Link } from '@mui/material';
 import { useHistory, useParams } from 'react-router-dom';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
+/**
+ * @component GroupForm
+ * @description Allows creation or editing of a group (name, picture, max profiles).
+ * @param {object} props - React props.
+ * @param {object} props.userData - Data for the current user context.
+ * @returns {JSX.Element}
+ */
 function GroupForm({ userData }) { 
   const [name, setName] = useState('');
   const [picture, setPicture] = useState('');
@@ -31,6 +42,11 @@ function GroupForm({ userData }) {
     }
   }, [id]);
 
+  /**
+   * @function handleSubmit
+   * @description Validates form inputs and sends group data to server for creation or update.
+   * @param {object} e - Form event object preventing default submission.
+   */
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (picture && !isValidUrl(picture)) {

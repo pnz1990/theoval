@@ -1,3 +1,7 @@
+/**
+ * @file GroupList.js
+ * @description Lists groups with options to create or delete them. Used in admin area.
+ */
 import React, { useState, useEffect } from 'react';
 import { Container, Typography, Box, Button, List, ListItem, ListItemText, ListItemSecondaryAction, IconButton, Paper, Divider, Breadcrumbs, Link } from '@mui/material';
 import { useHistory } from 'react-router-dom';
@@ -5,6 +9,13 @@ import DeleteIcon from '@mui/icons-material/Delete';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
+/**
+ * @component GroupList
+ * @description Renders administrative interface for viewing and managing groups.
+ * @param {object} props - React props.
+ * @param {object} props.userData - User info used for conditional display.
+ * @returns {JSX.Element}
+ */
 function GroupList({ userData }) { 
   const [groups, setGroups] = useState([]);
   const history = useHistory();
@@ -31,6 +42,11 @@ function GroupList({ userData }) {
     });
   }, []); 
 
+  /**
+   * @function handleDelete
+   * @description Deletes a group on the server and updates the local list.
+   * @param {number} id - The ID of the group to delete.
+   */
   const handleDelete = async (id) => {
     console.log(`GroupList: Deleting group with id ${id}`);
     try {

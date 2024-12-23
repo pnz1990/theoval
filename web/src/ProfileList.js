@@ -4,6 +4,16 @@ import { useHistory } from 'react-router-dom';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
+/**
+ * # ProfileList
+ *
+ * Fetches and displays all profiles associated with the current user.
+ *
+ * @component
+ * @param {Object} props - Component props.
+ * @param {Object} props.userData - Contains user data utilized for authentication and fetching profiles.
+ * @returns {JSX.Element} A React component that displays a list of profiles or a prompt to create a new one.
+ */
 function ProfileList({ userData }) { 
   const [profiles, setProfiles] = useState([]);
   const history = useHistory();
@@ -20,6 +30,13 @@ function ProfileList({ userData }) {
     }
   }, [userData]);
 
+  /**
+   * Handles profile selection and navigates to the respective chats page.
+   *
+   * @function handleProfileClick
+   * @param {Object} profile - The selected profile object.
+   * @returns {void}
+   */
   const handleProfileClick = (profile) => {
     history.push(`/groups/${profile.group_id}/chats?profile_id=${profile.id}`);
   };

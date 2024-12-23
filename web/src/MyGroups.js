@@ -2,6 +2,18 @@ import React from 'react';
 import { Container, Typography, Box, List, ListItem, ListItemText, Paper, Breadcrumbs, Link } from '@mui/material';
 import { useHistory } from 'react-router-dom';
 
+/**
+ * @file MyGroups.js
+ * @description Displays a list of groups the current user has joined.
+ */
+
+/**
+ * @component MyGroups
+ * @description Renders "My Groups" page. Shows a message if no groups found.
+ * @param {object} props - React props.
+ * @param {object} props.userData - Contains user details and their groups.
+ * @returns {JSX.Element}
+ */
 function MyGroups({ userData }) {
   const history = useHistory();
 

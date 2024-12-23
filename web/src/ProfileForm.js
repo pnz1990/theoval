@@ -4,6 +4,16 @@ import { useHistory } from 'react-router-dom';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
+/**
+ * # ProfileForm
+ *
+ * Creates a new user profile within a specified group.
+ *
+ * @component
+ * @param {Object} props - Component props.
+ * @param {Object} props.userData - Contains user data to help verify authentication.
+ * @returns {JSX.Element} A form to gather and submit profile details.
+ */
 function ProfileForm({ userData }) { // Added userData as a prop
   const [name, setName] = useState('');
   const [picture, setPicture] = useState('');
@@ -16,6 +26,13 @@ function ProfileForm({ userData }) { // Added userData as a prop
   const [step, setStep] = useState(1);
   const history = useHistory();
 
+  /**
+   * Validates the entered `group_id` and proceeds to the next step if valid.
+   *
+   * @function handleGroupSubmit
+   * @param {Event} e - The event object.
+   * @returns {Promise<void>}
+   */
   const handleGroupSubmit = async (e) => {
     e.preventDefault();
     const response = await fetch(`${API_URL}/groups/${group_id}`, {
@@ -38,6 +55,13 @@ function ProfileForm({ userData }) { // Added userData as a prop
     }
   };
 
+  /**
+   * Submits the profile data to the server if all validations pass.
+   *
+   * @function handleSubmit
+   * @param {Event} e - The event object.
+   * @returns {Promise<void>}
+   */
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (picture && !isValidUrl(picture)) {
@@ -78,6 +102,13 @@ function ProfileForm({ userData }) { // Added userData as a prop
     }
   };
 
+  /**
+   * Checks if a given string is a valid URL.
+   *
+   * @function isValidUrl
+   * @param {string} url - The URL string to validate.
+   * @returns {boolean} Returns `true` if valid, otherwise `false`.
+   */
   const isValidUrl = (url) => {
     try {
       new URL(url);
