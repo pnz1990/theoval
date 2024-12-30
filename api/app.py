@@ -333,6 +333,7 @@ def create_app(test_config=None):
             chats = Chat.query.filter(Chat.group_id == group_id, Chat.participants.any(id=profile_id)).all()
         else:
             chats = Chat.query.filter_by(group_id=group_id).all()
+            
         return jsonify([{
             'id': chat.id,
             'name': chat.name,

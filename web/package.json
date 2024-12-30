@@ -19,6 +19,7 @@
     "eject": "react-scripts eject"
   },
   "devDependencies": {
-    "docz": "^2.3.0"
+    "docz": "^2.3.0",
+    "eslint-plugin-react-hooks": "^4.6.0"
   }
 }

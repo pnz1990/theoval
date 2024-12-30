@@ -17,6 +17,10 @@ import { useHistory } from 'react-router-dom';
 function MyGroups({ userData }) {
   const history = useHistory();
 
+  const handleProfileClick = (profile) => {
+    history.push(`/groups/${profile.group_id}/chats?profile_id=${profile.id}`);
+  };
+
   if (!userData || !userData.groups || userData.groups.length === 0) {
     return (
       <Container maxWidth="sm">
@@ -56,7 +60,7 @@ function MyGroups({ userData }) {
               <ListItem 
                 button 
                 key={group.id} 
-                onClick={() => history.push(`/groups/${group.id}/chats?profile_id=${profile_id}`)}
+                onClick={() => handleProfileClick(userProfile)}
               >
                 <ListItemText primary={group.name} secondary={`Max Profiles: ${group.max_profiles}`} />
               </ListItem>

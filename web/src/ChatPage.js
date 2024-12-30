@@ -13,16 +13,21 @@ const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
  * @description Renders chats and messages for a specific group with profile previews.
  * @param {object} props - React props.
  * @param {object} props.userData - Contains profiles and other user information.
+ * @param {function} props.fetchUserData - Function to fetch user data.
  * @returns {JSX.Element}
  */
-function ChatPage({ userData }) {
+function ChatPage({ userData, fetchUserData }) {
   const [chats, setChats] = useState([]);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [selectedChat, setSelectedChat] = useState(null);
-  const [profiles, setProfiles] = useState([]);
   const { groupId } = useParams();
-  const profileId = userData ? userData.profiles[0].id : null;
+  
+  // Retrieve the current user's profile for the selected group from userData
+  const currentProfile = userData 
+    ? userData.profiles.find(p => p.group_id === groupId) 
+    : null;
+  const profileId = currentProfile ? currentProfile.id : null;
   const [open, setOpen] = useState(false);
   const [newChatName, setNewChatName] = useState('');
   const [profilesModalOpen, setProfilesModalOpen] = useState(false);
@@ -87,19 +92,19 @@ function ChatPage({ userData }) {
     }
   };
 
+  // Fetch user data once when the component mounts
+  useEffect(() => {
+    fetchUserData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Removed dependency on fetchUserData
+
+  // Fetch chats and profiles when userData or groupId changes
   useEffect(() => {
     if (userData) {
       fetchChats();
-
-      fetch(`${API_URL}/profiles`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      })
-      .then(response => response.json())
-      .then(data => setProfiles(data));
     }
-  }, [groupId, profileId, userData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [groupId, userData]); // Removed profileId to prevent unnecessary re-fetches
 
   useEffect(() => {
     if (selectedChat) {
@@ -150,7 +155,7 @@ function ChatPage({ userData }) {
   };
 
   const getProfile = (profileId) => {
-    return profiles.find(p => p.id === profileId) || { name: 'Unknown', picture: '' };
+    return userData.profiles.find(p => p.id === profileId) || { name: 'Unknown', picture: '' };
   };
 
   const messagesEndRef = useRef(null);
@@ -256,7 +261,7 @@ function ChatPage({ userData }) {
         <DialogContent>
           {!selectedProfileDetails ? (
             <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: 2 }}>
-              {profiles.map((p) => (
+              {userData.profiles.map((p) => (
                 <Box key={p.id} onClick={() => handleSelectProfile(p)} sx={{ cursor: 'pointer', textAlign: 'center' }}>
                   <Avatar src={p.picture} alt={p.name} sx={{ width: 56, height: 56, mx: 'auto' }} />
                   <Typography variant="body2">{p.name}</Typography>

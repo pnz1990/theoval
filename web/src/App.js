@@ -2,7 +2,7 @@
  * @file App.js
  * @description Root component handling global routes, authentication, and main layout.
  */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Container, Typography, Box, Button } from '@mui/material';
 import { useHistory, Route, Switch } from 'react-router-dom';
 import './App.css';
@@ -14,6 +14,7 @@ import ProfileForm from './ProfileForm';
 import ChatPage from './ChatPage';
 import MyGroups from './MyGroups';
 import Login from './Login';
+import Register from './Register';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
@@ -28,7 +29,8 @@ function App() {
   const [userData, setUserData] = useState(null);
   const history = useHistory();
 
-  const fetchUserData = async () => {
+  // Memoize fetchUserData to prevent it from being recreated on every render
+  const fetchUserData = useCallback(async () => {
     try {
       const response = await fetch(`${API_URL}/users/me`, {
         headers: {
@@ -44,7 +46,7 @@ function App() {
     } catch (error) {
       history.push('/login');
     }
-  };
+  }, [history]);
 
   useEffect(() => {
     if (isLoggedIn) {
@@ -52,7 +54,7 @@ function App() {
     } else {
       setUserData(null);
     }
-  }, [isLoggedIn]);
+  }, [isLoggedIn, fetchUserData]);
 
   useEffect(() => {
     if (isLoggedIn) {
@@ -63,7 +65,7 @@ function App() {
         unlisten();
       };
     }
-  }, [history, isLoggedIn]);
+  }, [history, isLoggedIn, fetchUserData]);
 
   useEffect(() => {
     if (isLoggedIn) {
@@ -103,22 +105,25 @@ function App() {
         <GroupForm userData={userData} />
       </Route>
       <Route path="/groups/:groupId/chats">
-        <ChatPage userData={userData} />
+        <ChatPage userData={userData} fetchUserData={fetchUserData} />
       </Route>
       <Route path="/groups">
         <GroupList userData={userData} />
       </Route>
       <Route path="/profiles/new">
-        <ProfileForm userData={userData} />
+        <ProfileForm userData={userData} fetchUserData={fetchUserData} />
       </Route>
       <Route path="/mygroups">
         <MyGroups userData={userData} />
       </Route>
       <Route path="/profiles/:id/edit">
-        <ProfileForm userData={userData} />
+        <ProfileForm userData={userData} fetchUserData={fetchUserData} />
       </Route>
       <Route path="/login">
         <Login setIsLoggedIn={setIsLoggedIn} />
+      </Route>
+      <Route path="/register">
+        <Register />
       </Route>
       <Route path="/">
         <Container maxWidth="sm">

@@ -14,7 +14,7 @@ const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
  * @param {Object} props.userData - Contains user data to help verify authentication.
  * @returns {JSX.Element} A form to gather and submit profile details.
  */
-function ProfileForm({ userData }) { // Added userData as a prop
+function ProfileForm({ userData, fetchUserData }) { // Added userData and fetchUserData as props
   const [name, setName] = useState('');
   const [picture, setPicture] = useState('');
   const [bio, setBio] = useState('');
@@ -50,6 +50,7 @@ function ProfileForm({ userData }) { // Added userData as a prop
       const profiles = await profilesResponse.json();
       setGroupProfilesLeft(group.max_profiles - profiles.length);
       setStep(2);
+      fetchUserData(); // Refresh userData after selecting a group
     } else {
       setGroupError('Invalid Group ID');
     }
@@ -96,6 +97,7 @@ function ProfileForm({ userData }) { // Added userData as a prop
     if (response.ok) {
       const profile = await response.json();
       history.push(`/groups/${profile.group_id}/chats?profile_id=${profile.id}`);
+      fetchUserData(); // Refresh userData after creating a profile
     } else {
       const data = await response.json();
       setError(data.message);
