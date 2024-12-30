@@ -1,5 +1,5 @@
 import logging
-from models import db, Group, Profile, User, Chat, chat_participants  
+from common.models import db, User, Group, Profile, Chat, chat_participants  
 from werkzeug.exceptions import BadRequest
 from uuid import UUID
 from functools import wraps

@@ -1,6 +1,6 @@
 import pytest
 from app import create_app
-from models import db, User, Group, Profile
+from common.models import db, User, Group, Profile, Chat, Message
 
 @pytest.fixture
 def client():

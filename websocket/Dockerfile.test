@@ -9,7 +9,7 @@ RUN apt-get update && \
     pip install --upgrade pip
 
 # Copy and install dependencies
-COPY api/requirements.txt .  
+COPY websocket/requirements.txt . 
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the entire application code

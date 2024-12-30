@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-from models import db, Group, Profile, User, Chat, Message
+from common.models import db, User, Group, Profile, Chat, Message
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 from flask_cors import CORS
 import os

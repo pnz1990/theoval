@@ -1,5 +1,5 @@
-from app import create_app
-from models import db
+from app import create_app  # Ensure importing from the correct app module
+from common.models import db
 
 def init_db():
     """

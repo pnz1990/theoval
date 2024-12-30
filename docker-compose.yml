@@ -14,24 +14,50 @@ services:
 
   test:
     build:
-      context: ./api
-      dockerfile: Dockerfile.test
+      context: .  # Changed from ./api to the root to include common
+      dockerfile: ./api/Dockerfile.test
     # Ensure tests use in-memory SQLite
     environment:
       FLASK_ENV: testing
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
-      PYTHONPATH: /app
+      PYTHONPATH: /app/common:$PYTHONPATH  # Updated PYTHONPATH
       SQLALCHEMY_DATABASE_URI: "sqlite:///:memory:"
     working_dir: /app
+    volumes:
+      - ./api:/app
+      - ./common:/app/common  # Mount the common directory
     depends_on:
       db:
         condition: service_healthy
     command: ["python", "-m", "pytest", "--disable-warnings", "-v"]
 
+  test-websocket:
+    build:
+      context: .  # Changed from ./websocket to the root to include common
+      dockerfile: ./websocket/Dockerfile.test
+    # Ensure tests use in-memory SQLite
+    environment:
+      FLASK_ENV: testing
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      PYTHONPATH: /app/common:$PYTHONPATH  # Updated PYTHONPATH
+      SQLALCHEMY_DATABASE_URI: "sqlite:///:memory:"
+    working_dir: /app
+    volumes:
+      - ./websocket:/app
+      - ./common:/app/common  # Mount the common directory
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["python", "-m", "pytest", "--disable-warnings", "-v"]    
+
   api:
-    build: ./api
+    build:
+      context: .  # Changed from ./api to the root to include common
+      dockerfile: ./api/Dockerfile
     ports:
       - "5001:5000"
     environment:
@@ -42,11 +68,33 @@ services:
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
     volumes:
       - ./api:/app
+      - ./common:/app/common  # Mount the common directory
+      - ./api/entrypoint.sh:/app/entrypoint.sh  # Add this line
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
       interval: 10s
       timeout: 5s
       retries: 5
+    depends_on:
+      db:
+        condition: service_healthy
+
+  websocket:
+    build:
+      context: .  # Changed from ./websocket to the root to include common
+      dockerfile: ./websocket/Dockerfile
+    ports:
+      - "5002:5000"  # Adjust port if necessary
+    environment:
+      FLASK_ENV: development
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: postgres
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+    volumes:
+      - ./websocket:/app
+      - ./common:/app/common  # Mount the common directory
+    entrypoint: ["/bin/sh"]  # Ensure the entrypoint is reset if previously set
     depends_on:
       db:
         condition: service_healthy

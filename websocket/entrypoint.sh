@@ -10,7 +10,7 @@ done
 
 # Initialize the database
 echo "Database is ready, initializing..."
-python /app/init_db.py  # Use absolute path
+python init_db.py
 
 # Start the Gunicorn application server
 echo "Starting application..."

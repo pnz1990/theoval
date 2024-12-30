@@ -9,7 +9,10 @@ RUN apt-get update && \
     apt-get install -y dos2unix
 
 # Copy all files to the builder
-COPY . .
+COPY api/ .
+
+# Copy entrypoint.sh and healthcheck.sh explicitly
+COPY common/healthcheck.sh . 
 
 # Convert line endings and make scripts executable
 RUN dos2unix entrypoint.sh healthcheck.sh && \
@@ -27,11 +30,17 @@ RUN apt-get update && \
 WORKDIR /app
 
 # Copy and install dependencies
-COPY requirements.txt .
+COPY api/requirements.txt .  
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy built files from the builder stage
 COPY --from=builder /build .
+
+# Copy the common directory
+COPY ./common ./common
+
+# Set PYTHONPATH to include the common directory
+ENV PYTHONPATH=/app/common:$PYTHONPATH
 
 # Expose the application port
 EXPOSE 5000
