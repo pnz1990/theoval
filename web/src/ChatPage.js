@@ -32,6 +32,7 @@ function ChatPage({ userData, fetchUserData }) {
   const [newChatName, setNewChatName] = useState('');
   const [profilesModalOpen, setProfilesModalOpen] = useState(false);
   const [selectedProfileDetails, setSelectedProfileDetails] = useState(null);
+  const [profiles, setProfiles] = useState([]);
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
@@ -58,6 +59,30 @@ function ChatPage({ userData, fetchUserData }) {
     });
     const data = await response.json();
     setChats(data);
+  };
+
+  const fetchProfiles = async () => {
+    try {
+      console.log('Fetching profiles for groupId:', groupId, 'profileId:', profileId);
+      if (!groupId) {
+        console.error('groupId is undefined.');
+        return;
+      }
+      const response = await fetch(`${API_URL}/groups/${groupId}/profiles`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Profiles data received:', data);
+        setProfiles(data.profiles || data); // Adjust based on actual API response structure
+      } else {
+        console.error('Failed to fetch profiles:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error fetching profiles:', error);
+    }
   };
 
   /**
@@ -95,6 +120,7 @@ function ChatPage({ userData, fetchUserData }) {
   // Fetch user data once when the component mounts
   useEffect(() => {
     fetchUserData();
+    fetchProfiles();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Removed dependency on fetchUserData
 
@@ -155,7 +181,7 @@ function ChatPage({ userData, fetchUserData }) {
   };
 
   const getProfile = (profileId) => {
-    return userData.profiles.find(p => p.id === profileId) || { name: 'Unknown', picture: '' };
+    return profiles.find(p => p.id === profileId) || { name: 'Unknown', picture: '' };
   };
 
   const messagesEndRef = useRef(null);
@@ -261,7 +287,7 @@ function ChatPage({ userData, fetchUserData }) {
         <DialogContent>
           {!selectedProfileDetails ? (
             <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: 2 }}>
-              {userData.profiles.map((p) => (
+              {profiles.map((p) => (
                 <Box key={p.id} onClick={() => handleSelectProfile(p)} sx={{ cursor: 'pointer', textAlign: 'center' }}>
                   <Avatar src={p.picture} alt={p.name} sx={{ width: 56, height: 56, mx: 'auto' }} />
                   <Typography variant="body2">{p.name}</Typography>

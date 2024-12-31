@@ -449,6 +449,28 @@ def create_app(test_config=None):
         except Exception as e:
             return jsonify({'message': str(e)}), 500
     
+    @app.route('/groups/<group_id>/profiles', methods=['GET'])
+    @jwt_required()
+    def get_group_profiles(group_id):
+        """
+        Endpoint to retrieve all profiles within a specific group.
+
+        Args:
+            group_id (str): ID of the group.
+
+        Returns:
+            Response: JSON list of profiles.
+        """
+        app.logger.debug('Fetching profiles for group_id: %s', group_id)
+        profiles = Profile.query.filter_by(group_id=group_id).all()
+        return jsonify([{
+            'id': profile.id,
+            'name': profile.name,
+            'picture': profile.picture,
+            'bio': profile.bio,
+            'user_id': profile.user_id
+        } for profile in profiles]), 200
+
     ### Route Definitions End ###
     
     return app  # Ensure the app is returned
